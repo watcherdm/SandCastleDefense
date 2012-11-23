@@ -1,0 +1,10 @@
+{
+	"name": "sandCastleDefense",
+	"description": "It's gonna be a sick castle defense game",
+	"version": "0.0.0",
+	"private": true,
+	"dependencies": {
+		"connect": "*",
+		"optimist": "0.2.x"
+	}
+}
