@@ -73,7 +73,6 @@ Beach.prototype.createTerrain = function() {
 		self.terrain.resolution.y
 	);
 	geometry.dynamic = true;
-	geometry.vertices.length = (self.terrain.size.x / self.terrain.resolution.x) * (self.terrain.size.y / self.terrain.resolution.y);
 	self.buildTerrain(geometry);
 	return geometry;
 };
@@ -176,12 +175,21 @@ Beach.prototype.createScene = function() {
 	return new THREE.Scene();
 };
 
+Beach.prototype.createSky = function(){
+	var M = 1000 * 10;
+	var skyGeometry = new THREE.CubeGeometry(M, M, M, 4, 4, 4, null, true);
+	var skyMaterial = new THREE.MeshBasicMaterial({color: 0x3030ff});
+	var skyboxMesh  = new THREE.Mesh(skyGeometry, skyMaterial);
+	skyboxMesh.flipSided = true;
+	self.scene.add(skyboxMesh);
+};
+
 Beach.prototype.sceneMain = function() {
 	var pointLight = new THREE.PointLight(0xffffcc);
 	pointLight.intensity = 1;
 	pointLight.position = new THREE.Vector3(1000, 800, -1000);
 	self.scene.add(pointLight);
-	
+	self.createSky();
 	var waterGeom = new THREE.PlaneGeometry(self.terrain.size.x, self.terrain.size.y, 1, 1);
 	var waterMesh = new THREE.Mesh(waterGeom, new THREE.MeshLambertMaterial({color: 0x6699ff}));
 	waterMesh.rotation.x = -90 * Math.PI / 180;
@@ -211,7 +219,12 @@ Beach.prototype.createCamera = function() {
 };
 
 Beach.prototype.createRenderer = function() {
-	var renderer = new THREE.WebGLRenderer();
+	var renderer;
+	try {
+		renderer = new THREE.WebGLRenderer();
+	} catch(e) {
+		renderer = new THREE.CanvasRenderer();
+	}
 	renderer.setSize(window.innerWidth, window.innerHeight);
 	self.container.appendChild(renderer.domElement);
 	return renderer;
