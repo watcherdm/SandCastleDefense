@@ -16,10 +16,10 @@ Building a castle is done by performing a couple simple tasks. First the player 
 
 *Tools:*
 
-Shovel 3 sizes
-Trowel 3 sizes
-Bucket 3 sizes
-Stick 12 total patterns (earned through gameplay)
+* Shovel 3 sizes
+* Trowel 3 sizes
+* Bucket 3 sizes
+* Stick 12 total patterns (earned through gameplay)
 
 *The Base:*
 
