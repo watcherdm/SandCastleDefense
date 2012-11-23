@@ -43,6 +43,13 @@ Throughout the game the player will get access to different bucket types, each b
 
 Each of the 4 bucket types create structures that can launch attacks against on coming elements and critters. They range from close range powerful attacks to long range weak attacks and have one of the following characteristics: fast attack rate, impede critter or element movement, critter damage over time, element debuff.
 
+*Bucket Types:*
+```Bucket Type: (special, damage, range)```
+Bartizan : Overhanging turret (critter dot, 3, 2)
+Bastion : Small Tower (fast attack rate, 1, 4)
+Battlement : Protective Wall (element debuff, 4, 1)
+Turret : For firing upon enemies (impede movement, 2, 3)
+
 *Inhabitant types:*
 
 0. Coral []
