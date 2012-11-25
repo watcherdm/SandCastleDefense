@@ -4,3 +4,5 @@ var connect = require('connect'),
 
 app.use(connect.static('public'))
   .listen(port);
+
+console.log('Sand Castle Defense Server Started on port ' + port);

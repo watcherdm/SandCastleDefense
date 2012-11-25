@@ -1,12 +1,31 @@
 var self = null;
 
+var Grain = function(){
+	this.geometry = new THREE.CubeGeometry(
+		this.size.x,
+		this.size.y,
+		this.size.z,
+		this.resolution.x,
+		this.resolution.y,
+		this.resolution.z
+	);
+}
+
+Grain.prototype = {
+	size : {
+		x : 10,
+		y : 10,
+		z : 10
+	},
+	resolution : {
+		x : 1,
+		y : 1,
+		z : 1
+	}
+}
 var Beach = function() {
 	self = this;
-	
-	self.debug = {
-		stats: true
-	};
-	
+
 	self.players = {
 		local: null
 	};
@@ -14,11 +33,13 @@ var Beach = function() {
 	self.terrain = {
 		size: {
 			x: 1200,
-			y: 1200
+			y: 1200,
+			z: 100
 		},
 		resolution: {
 			x: 10,
-			y: 10
+			y: 10,
+			z: 10
 		},
 		geometry: null
 	};
@@ -66,15 +87,40 @@ Beach.prototype.toggleWater = function() {
 };
 
 Beach.prototype.createTerrain = function() {
-	var geometry = new THREE.PlaneGeometry(
+	var terrain = new THREE.CubeGeometry(
 		self.terrain.size.x,
 		self.terrain.size.y,
+		self.terrain.size.z,
 		self.terrain.resolution.x,
-		self.terrain.resolution.y
+		self.terrain.resolution.y,
+		self.terrain.resolution.z
 	);
-	geometry.dynamic = true;
-	self.buildTerrain(geometry);
-	return geometry;
+	var c = THREE.CSG.toCSG(terrain);
+	_.range(5).forEach(function(blah, idx){
+		
+		var scoop = new THREE.Mesh(new THREE.CubeGeometry(
+			50,
+			50,
+			50,
+			1,
+			1,
+			1
+		), new THREE.MeshLambertMaterial({color: 0xcccccc}));
+		// to do this I need a mesh
+		scoop.position.x = (Math.random() * self.terrain.size.x) / 2;
+		scoop.position.y = (Math.random() * self.terrain.size.y) / 2;
+		scoop.position.z = (self.terrain.size.z / 2);
+		var s = THREE.CSG.toCSG(scoop);
+		c = c.subtract(s);
+	})
+	terrain = THREE.CSG.fromCSG(c);
+	terrain.dynamic = true;
+	self.buildTerrain(terrain);
+	return terrain;
+};
+
+Beach.prototype.dig = function(){
+
 };
 
 Beach.prototype.buildTerrain = function(geometry) {
@@ -207,12 +253,12 @@ Beach.prototype.sceneMain = function() {
 
 Beach.prototype.createCamera = function() {
 	var camera = new THREE.PerspectiveCamera(
-		65,                                     // Field of View
+		45,                                     // Field of View
 		window.innerWidth / window.innerHeight, // Aspect Ratio
 		10,                                     // Near clipping plane
 		5000                                    // Far clipping plane
 	);
-	camera.position = new THREE.Vector3(0, 600, 1000);
+	camera.position = new THREE.Vector3(0, 1000, 1000);
 	camera.lookAt(new THREE.Vector3(0, 0, 0));
 	self.scene.add(camera);
 	return camera;
