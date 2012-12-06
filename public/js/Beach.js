@@ -1,5 +1,33 @@
 var self = null;
 
+var Scoop = function(){
+	this.geometry = new THREE.CubeGeometry(
+		this.size.x,
+		this.size.y,
+		this.size.z,
+		this.resolution.x,
+		this.resolution.y,
+		this.resolution.z
+	);
+	this.material = new THREE.MeshLambertMaterial({color: 0xcccccc});
+	THREE.Mesh.call(this, this.geometry, this.material);
+}
+
+Scoop.prototype = new THREE.Mesh();
+
+_.extend(Scoop.prototype, {
+	size : {
+		x : 50,
+		y : 50,
+		z : 50
+	},
+	resolution : {
+		x : 1,
+		y : 1,
+		z : 1
+	}
+});
+
 var Grain = function(){
 	this.geometry = new THREE.CubeGeometry(
 		this.size.x,
@@ -74,7 +102,7 @@ var Beach = function() {
 	self.renderer = self.createRenderer();
 	
 	self.terrain.geometry = self.createTerrain();
-	
+	self.createScoop();
 	self.setupEvents();
 };
 
@@ -85,6 +113,23 @@ Beach.prototype.toggleWater = function() {
 		self.scene.remove(self.water);
 	}
 };
+
+Beach.prototype.dig = function(){
+	self.applyTerrainTransform(function(terrain){
+		var c = THREE.CSG.toCSG(terrain);
+		self.scoop.position.x = (Math.random() * self.terrain.size.x) - (self.terrain.size.x / 2);
+		self.scoop.position.y = (Math.random() * self.terrain.size.y) - (self.terrain.size.y / 2);
+		self.scoop.position.z = (self.terrain.size.z / 2);
+		var s = THREE.CSG.toCSG(self.scoop);
+		c = c.subtract(s);
+		return THREE.CSG.fromCSG(c);
+	});
+
+};
+
+Beach.prototype.createScoop = function(){
+	self.scoop = new Scoop();
+}
 
 Beach.prototype.createTerrain = function() {
 	var terrain = new THREE.CubeGeometry(
@@ -98,29 +143,13 @@ Beach.prototype.createTerrain = function() {
 	var c = THREE.CSG.toCSG(terrain);
 	_.range(5).forEach(function(blah, idx){
 		
-		var scoop = new THREE.Mesh(new THREE.CubeGeometry(
-			50,
-			50,
-			50,
-			1,
-			1,
-			1
-		), new THREE.MeshLambertMaterial({color: 0xcccccc}));
+		var scoop = new Scoop();
 		// to do this I need a mesh
-		scoop.position.x = (Math.random() * self.terrain.size.x) / 2;
-		scoop.position.y = (Math.random() * self.terrain.size.y) / 2;
-		scoop.position.z = (self.terrain.size.z / 2);
-		var s = THREE.CSG.toCSG(scoop);
-		c = c.subtract(s);
 	})
 	terrain = THREE.CSG.fromCSG(c);
 	terrain.dynamic = true;
 	self.buildTerrain(terrain);
 	return terrain;
-};
-
-Beach.prototype.dig = function(){
-
 };
 
 Beach.prototype.buildTerrain = function(geometry) {
@@ -223,7 +252,7 @@ Beach.prototype.createScene = function() {
 
 Beach.prototype.createSky = function(){
 	var M = 1000 * 10;
-	var skyGeometry = new THREE.CubeGeometry(M, M, M, 4, 4, 4, null, true);
+	var skyGeometry = new THREE.CubeGeometry(M, M, M);
 	var skyMaterial = new THREE.MeshBasicMaterial({color: 0x3030ff});
 	var skyboxMesh  = new THREE.Mesh(skyGeometry, skyMaterial);
 	skyboxMesh.flipSided = true;
@@ -340,10 +369,10 @@ Beach.prototype.motion = function() {
 	}
 };
 
-
 Beach.prototype.run = function(fps) {
 	self.motion();
 	self.render();
+	self.dig();
 	setTimeout(
 		function() {
 			self.run(fps);
