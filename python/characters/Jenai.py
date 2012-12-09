@@ -23,6 +23,13 @@ class Jenai(pygame.sprite.Sprite):
         self.building = False
         self.stepSize = 1
         
+    def checkSelected(self, pos):
+        if self.rect.collidepoint(pos):
+            self.moving = False
+            self.selected = True
+            print "Jenai selected"
+        else:
+            self.selected = False
     def update(self):
         "Move to her destination or build a thing"
         if self.moving:
