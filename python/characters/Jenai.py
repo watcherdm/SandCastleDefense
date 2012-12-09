@@ -52,13 +52,13 @@ class Jenai(pygame.sprite.Sprite):
 
         if (movePosition == (0, 0)):
             self.direction = None
-        else if (movePosition == (1, 0)):
+        elif (movePosition == (1, 0)):
             self.direction = 'right'
-        else if (movePosition == (0, 1)):
+        elif (movePosition == (0, 1)):
             self.direction = 'down'
-        else if (movePosition == (-1, 0)):
+        elif (movePosition == (-1, 0)):
             self.direction = 'left'
-        else if (movePosition == (0, -1)):
+        elif (movePosition == (0, -1)):
             self.direction = 'up'
 
         newpos = self.rect.move(movePosition)
