@@ -34,7 +34,7 @@ while 1:
 	if leftClick:
 		mousePosition = pygame.mouse.get_pos()
 		selectablecharacters.checkSelected(mousePosition)
-		if !jenai.selected:
+		if not jenai.selected:
 			jenai.setDestination(mousePosition)
 	allsprites.update()
 	screen.blit(beach, (0, 0))
