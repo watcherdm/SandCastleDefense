@@ -1,7 +1,6 @@
 import pygame, sys
 from characters.Characters import Jenai, Steve, BeachLady
 from characters.SelectableGroup import SelectableGroup
-from characters.ImovableObject import ImovableObject
 
 pygame.init()
 beach = pygame.image.load('beach.jpg')
@@ -18,7 +17,7 @@ driftwood = pygame.image.load('driftwood_01.PNG')
 
 selectablecharacters = SelectableGroup(jenai, steve)
 allsprites = pygame.sprite.RenderPlain(jenai, beachlady, steve)
-imoveablesprites = ImovableObject(beachlady)
+imoveablesprites = pygame.sprite.RenderPlain(beachlady)
 screen.blit(beach, (0,0))
 pygame.display.flip()
 clock = pygame.time.Clock()
