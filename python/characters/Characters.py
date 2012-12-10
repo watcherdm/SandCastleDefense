@@ -9,11 +9,18 @@ def load_image(name, colorkey=None):
         raise SystemExit, message
     return image, image.get_rect()
 
-class Jenai(pygame.sprite.Sprite):
-    "A little girl ready to build a sand castle"
+class BeachLady(pygame.sprite.Sprite):
+    "A lady laying on the beach"
     def __init__(self):
+        pygame.sprite.Sprite.__init__(self)
+        self.image, self.rect = load_image('beachlady_01.PNG', -1);
+
+class SelectableCharacter(pygame.sprite.Sprite):
+    "A little girl ready to build a sand castle"
+    def __init__(self, name):
         pygame.sprite.Sprite.__init__(self) #call Sprite intializer
-        self.image, self.rect = load_image('jenai_01.PNG', -1)
+        self.image, self.rect = load_image(name + '_01.PNG', -1)
+        self.name = name;
         screen = pygame.display.get_surface()
         self.destinations = []
         self.castles = []
@@ -27,7 +34,7 @@ class Jenai(pygame.sprite.Sprite):
         if self.rect.collidepoint(pos):
             self.moving = False
             self.selected = True
-            print "Jenai selected"
+            print self.name + " selected"
         else:
             self.selected = False
     def update(self):
@@ -37,7 +44,6 @@ class Jenai(pygame.sprite.Sprite):
         if self.building:
             self._build()
     def _walk(self):
-        "move the monkey across the screen, and turn at the ends"
         current_destination = self.destinations[0];
         if  not current_destination:
             print "removing the current destination"
@@ -71,30 +77,23 @@ class Jenai(pygame.sprite.Sprite):
         newpos = self.rect.move(movePosition)
         self.rect = newpos
 
-    def _build(self):
-        "Make jenai build a castle"
-        center = self.rect.center
-        self.dizzy += 12
-        if self.dizzy >= 360:
-            self.dizzy = 0
-            self.image = self.original
-        else:
-            rotate = pygame.transform.rotate
-            self.image = rotate(self.original, self.dizzy)
-        self.rect = self.image.get_rect(center=center)
-
     def selected(self):
-        "This should select jenai"
         self.selected = True
 
     def setDestination(self, position):
-        "This will make jenai walk to the new position"
-        print "Jenai has been set to moving and should be going to "
+        print self.name + "has been set to moving and should be going to "
         print position
         self.moving = True
         self.destinations.append(((position[0] / 64) * 64, (position[1] / 64) * 64))
 
     def setProject(self, castle):
-        "This will add a castle to Jenai's work queue"
         self.building = True
         self.castles.append(castle)
+
+class Jenai(SelectableCharacter):
+    def __init__(self):
+        SelectableCharacter.__init__(self, 'jenai')
+
+class Steve(SelectableCharacter):
+    def __init__(self):
+        SelectableCharacter.__init__(self, 'steve')
