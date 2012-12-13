@@ -25,21 +25,6 @@ clock = pygame.time.Clock()
 while 1:
 
 	clock.tick(60)
-
-	for event in pygame.event.get():
-		if event.type == pygame.QUIT: sys.exit()
-
-	mouseState = leftClick, middleClick, rightClick = pygame.mouse.get_pressed()
-
-	if leftClick:
-		mousePosition = pygame.mouse.get_pos()
-		selectablecharacters.checkSelected(mousePosition)
-		for sprite in selectablecharacters.sprites():
-			if sprite.selected:
-				sprite.setDestination(mousePosition)
-			elif sprite.checkSelected(mousePosition):
-				# bring in the selection hight light
-				print 'selection occurring'
 	allsprites.update()
 	screen.blit(beach, (0, 0))
 	for i in range(0,height, 64):

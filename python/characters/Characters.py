@@ -14,35 +14,83 @@ class BeachLady(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
         self.image, self.rect = load_image('beachlady_01.PNG', -1);
-
-class SelectableCharacter(pygame.sprite.Sprite):
-    "A little girl ready to build a sand castle"
-    def __init__(self, name):
+class Character(pygame.sprite.Sprite):
+    def __init__(self, name = None, position = (0,0)):
+        if not name: raise 1
         pygame.sprite.Sprite.__init__(self) #call Sprite intializer
         self.image, self.rect = load_image(name + '_01.PNG', -1)
         self.name = name;
+        self.rect.topleft = position
+
+    def update(self):
+        "Characters can be udpated"
+        self.checkState()
+        self.beforeUpdate()
+        self.performUpdate()
+        self.afterUpdate()
+    def checkState(self, *args, **kwargs):
+        return
+    def beforeUpdate(self, *args, **kwargs):
+        return
+    def performUpdate(self, *args, **kwargs):
+        return
+    def afterUpdate(self, *args, **kwargs):
+        return
+
+class SelectableCharacter(Character):
+    "A little girl ready to build a sand castle"
+    def __init__(self, name, position = (10,10)):
+        Character.__init__(self, name, position)
         screen = pygame.display.get_surface()
         self.destinations = []
         self.castles = []
         self.area = screen.get_rect()
-        self.rect.topleft = 10, 10
         self.moving = False
         self.building = False
         self.stepSize = 1
-        
-    def checkSelected(self, pos):
+        self.mouse = {
+            'down': False,
+            'over': False
+        }
+    def mouseover(self, event):
+        pos = pygame.mouse.get_pos()
         if self.rect.collidepoint(pos):
-            self.moving = False
-            self.selected = True
-            print self.name + " selected"
+            if not self.mouse['over']:
+                self.on_mouseover(event)
+            self.mouse['over'] = True
         else:
-            self.selected = False
-    def update(self):
-        "Move to her destination or build a thing"
-        if self.moving:
-            self._walk()
-        if self.building:
-            self._build()
+            if self.mouse['over']:
+                self.on_mouseout(event)
+            self.mouse['over'] = False
+        
+    def click(self, event):
+        self.on_click(event)
+    def mousedown(self, event):
+        if self.mouse['over']:
+            self.on_mousedown(event)
+            self.mouse['down'] = True
+    def mouseup(self, event):
+        if self.mouse['over']:
+            if self.mouse['down']:
+                self.on_mouseup(event)
+                self.click(event)
+        self.mouse['down'] = False
+    def mousehold(self, event):
+        if self.mouse['over'] and self.mouse['down']:
+            self.on_mousehold(event)
+    def checkState(self):
+        events = pygame.event.get()
+        for event in events:
+            if event.type == pygame.QUIT: sys.exit()
+            if event.type == pygame.MOUSEMOTION:
+                self.mouseover(event)
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    self.mousedown(event)
+            if event.type == pygame.MOUSEBUTTONUP:
+                if event.button == 1:
+                    self.mousedown(event)                
+
     def _walk(self):
         current_destination = self.destinations[0];
         if  not current_destination:
@@ -90,10 +138,21 @@ class SelectableCharacter(pygame.sprite.Sprite):
         self.building = True
         self.castles.append(castle)
 
+    def on_mousedown(self, event):
+        print "HELLO DOWN"
+    def on_mouseup(self, event):
+        print "HELLO UP"
+    def on_mouseover(self, event):
+        print "HELLO OVER"
+    def on_mouseout(self, event):
+        print "HELLO OUT"
+    def on_click(self, event):
+        print "HELLO CLICK"
+
 class Jenai(SelectableCharacter):
     def __init__(self):
-        SelectableCharacter.__init__(self, 'jenai')
+        SelectableCharacter.__init__(self, 'jenai', (0,0))
 
 class Steve(SelectableCharacter):
     def __init__(self):
-        SelectableCharacter.__init__(self, 'steve')
+        SelectableCharacter.__init__(self, 'steve', (0, 128))
