@@ -25,7 +25,9 @@ clock = pygame.time.Clock()
 while 1:
 
 	clock.tick(60)
-	allsprites.update()
+	events = pygame.event.get()
+
+	allsprites.update(events)
 	screen.blit(beach, (0, 0))
 	for i in range(0,height, 64):
 		pygame.draw.line(beach, (0,0,0), (0, i), (width, i))

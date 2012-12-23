@@ -22,9 +22,9 @@ class Character(pygame.sprite.Sprite):
         self.name = name;
         self.rect.topleft = position
 
-    def update(self):
+    def update(self, events):
         "Characters can be udpated"
-        self.checkState()
+        self.checkState(events)
         self.beforeUpdate()
         self.performUpdate()
         self.afterUpdate()
@@ -78,8 +78,7 @@ class SelectableCharacter(Character):
     def mousehold(self, event):
         if self.mouse['over'] and self.mouse['down']:
             self.on_mousehold(event)
-    def checkState(self):
-        events = pygame.event.get()
+    def checkState(self, events = []):
         for event in events:
             if event.type == pygame.QUIT: sys.exit()
             if event.type == pygame.MOUSEMOTION:
