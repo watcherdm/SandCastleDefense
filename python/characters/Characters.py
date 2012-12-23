@@ -1,13 +1,5 @@
 import os, sys, pygame
-
-def load_image(name, colorkey=None):
-    fullname = os.path.join(name)
-    try:
-        image = pygame.image.load(fullname)
-    except pygame.error, message:
-        print 'Cannot load image:', name
-        raise SystemExit, message
-    return image, image.get_rect()
+from base import load_image
 
 class BeachLady(pygame.sprite.Sprite):
     "A lady laying on the beach"
@@ -38,12 +30,12 @@ class Character(pygame.sprite.Sprite):
         return
 
 class SelectableCharacter(Character):
-    "A little girl ready to build a sand castle"
+    "A selectable controllable character"
     def __init__(self, name, position = (10,10)):
         Character.__init__(self, name, position)
         screen = pygame.display.get_surface()
         self.destinations = []
-        self.castles = []
+        self.structures = []
         self.area = screen.get_rect()
         self.moving = False
         self.building = False
@@ -88,7 +80,7 @@ class SelectableCharacter(Character):
                     self.mousedown(event)
             if event.type == pygame.MOUSEBUTTONUP:
                 if event.button == 1:
-                    self.mousedown(event)                
+                    self.mouseup(event)                
 
     def _walk(self):
         current_destination = self.destinations[0];
@@ -133,9 +125,9 @@ class SelectableCharacter(Character):
         self.moving = True
         self.destinations.append(((position[0] / 64) * 64, (position[1] / 64) * 64))
 
-    def setProject(self, castle):
+    def setProject(self, structure):
         self.building = True
-        self.castles.append(castle)
+        self.structures.append(structure)
 
     def on_mousedown(self, event):
         print "HELLO DOWN"
