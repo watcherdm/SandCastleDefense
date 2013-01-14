@@ -14,6 +14,10 @@ class Structure(EventedSprite):
 	def update(self, events):
 		self.age += 1
 
+	def on_click(self, event):
+		"""report on damage etc and give upgrade options"""
+		return
+
 class World(EventedSprite):
 	def __init__(self, name = "beach", grid_size = 64):
 		EventedSprite.__init__(self)
