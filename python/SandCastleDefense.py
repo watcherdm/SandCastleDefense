@@ -12,7 +12,7 @@ TIDELEVELS = (.5, 1, 1.5, 2, 3, 4, 6)
 WAVELEVELS = (10, 20, 50, 100)
 BEACHCOLOR = pygame.Color(255, 222, 73, 1)
 OCEANCOLOR = pygame.Color(73, 130, 255)
-WETSANDCOLOR = pygame.Color(94,82,69)
+WETSANDCOLOR = pygame.Color(94,82,69, 50)
 WAVEPRECISION = 100
 def main():
 	pygame.init()
@@ -29,6 +29,7 @@ def main():
 	jenai = Jenai()
 
 	selectable = pygame.sprite.OrderedUpdates(jenai)
+	oldocean = None
 
 	#testing
 	selectable = build_castle(selectable)
@@ -38,20 +39,20 @@ def main():
 	clock = pygame.time.Clock()
 
 	i = 1
-	wave = get_line(i, 100)
+	wave = get_line(i, WAVEPRECISION)
 	wave_count = 0
 	ocean = None
 	while True:
-
 		events = pygame.event.get()
 		if i % 100 == 0:
 			if random.randint(0,100) % 2 == 0:
 				current_tide_level += .01
 			else:
 				current_tide_level -= .01
+
 		if wave_count >= len(wave):
 			wave_count = 0
-			wave = get_line(wave_count + 1, 100)
+			wave = get_line(wave_count + 1, WAVEPRECISION)
 			
 		sand.fill(BEACHCOLOR)
 		selectable.update(events)
@@ -59,15 +60,20 @@ def main():
 		menu.draw(sand)
 
 		ocean = build_ocean(wave[wave_count], current_tide_level)
-		if i == 1 or ocean.top < oldocean.top:
+		if oldocean == None or oldocean.top > ocean.top or WETSANDCOLOR.a == 0:
 			oldocean = ocean
-			print ocean.top
-			print oldocean.top
+			WETSANDCOLOR.a = 255
 
 		if (i % 3 == 0):
 			wave_count += 1
-		if (oldocean):
-			sand.fill(WETSANDCOLOR, oldocean)
+
+		if WETSANDCOLOR.a > 0:
+			WETSANDCOLOR.a = WETSANDCOLOR.a - 1
+			oosurf = pygame.Surface((oldocean.right - oldocean.left, oldocean.bottom - oldocean.top))
+			oosurf.set_alpha(WETSANDCOLOR.a)
+			oosurf.fill(WETSANDCOLOR)
+			sand.blit(oosurf, (oldocean.left, oldocean.top))
+
 		sand.fill(OCEANCOLOR, ocean)
 		pygame.display.flip()
 		clock.tick(60)
