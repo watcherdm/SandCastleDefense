@@ -1,11 +1,6 @@
 import os, sys, pygame, glob
 from base import EventedSprite, load_image
 
-class BeachLady(pygame.sprite.Sprite):
-    "A lady laying on the beach"
-    def __init__(self):
-        pygame.sprite.Sprite.__init__(self)
-        self.image, self.rect = load_image('beachlady_01.PNG', -1);
 class Character(EventedSprite):
     def __init__(self, name = None, position = (0,0)):
         if not name: raise 1
@@ -18,6 +13,7 @@ class Character(EventedSprite):
         self.ani_pos = 0
         self.ani_max = len(self.ani) - 1
         self.image = pygame.image.load(self.ani[self.ani_pos])
+        self.image = pygame.transform.scale(self.image, (50,50))
         self.rect = self.image.get_rect()
         self.rect.topleft = position
 
@@ -32,6 +28,7 @@ class Character(EventedSprite):
         self.checkState(events)
         if self.moving:
             self.image = pygame.image.load(self.ani[self.ani_pos])
+            self.image = pygame.transform.scale(self.image, (50, 50))
             self._walk()
 
 class SelectableCharacter(Character):

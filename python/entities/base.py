@@ -3,6 +3,7 @@ import pygame, os, sys
 class EventedSprite(pygame.sprite.Sprite):
   def __init__(self):
     pygame.sprite.Sprite.__init__(self)
+    self.selected = False
     self.mouse = {
       'down': False,
       'over': False
