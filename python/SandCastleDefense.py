@@ -1,3 +1,5 @@
+#! /usr/bin/python
+
 import pygame, sys, random
 from entities.Characters import *
 from entities.Structures import *
