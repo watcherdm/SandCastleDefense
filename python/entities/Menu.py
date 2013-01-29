@@ -3,7 +3,8 @@ from base import EventedSprite, load_image
 class Button(EventedSprite):
 	def __init__(self, name):
 		EventedSprite.__init__(self)
-		self.image, self.rect = load_image(name + '.PNG', -1)
+		self.image, self.rect = load_image('button.png', -1)
+
 
 	def on_click(self, event):
 		return 1
