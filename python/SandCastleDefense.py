@@ -29,14 +29,18 @@ def main():
 	speed = [2, 2]
 
 	jenai = Jenai()
-
+	jenai.rect.top = 100
+	jenai.rect.left = 100
 	selectable = pygame.sprite.OrderedUpdates(jenai)
 	oldocean = None
-
+	selected = None
 	#testing
-	selectable = build_castle(selectable)
 
-	menu = pygame.sprite.RenderPlain(FireTowerButton(), IceTowerButton(), LightningTowerButton())
+	# TODO: Make this a list of tasks, that should put me in a good place
+	# to delegate the work of making tasks to the user input.
+	# 
+	selectable = build_castle(selectable)
+	menuitems = FireTowerButton(), IceTowerButton(), LightningTowerButton()
 
 	clock = pygame.time.Clock()
 
@@ -58,8 +62,14 @@ def main():
 			
 		sand.fill(BEACHCOLOR)
 		selectable.update(events)
+		menuring = MenuRing(jenai)
+		for m in menuitems:
+			menuring.add_button(m)
 		selectable.draw(sand)
-		menu.draw(sand)
+		menuring.update()
+		menuring.draw(sand)
+		for m in menuitems:
+			m.draw(sand)
 
 		ocean = build_ocean(wave[wave_count], current_tide_level)
 		if oldocean == None or oldocean.top > ocean.top or WETSANDCOLOR.a == 0:

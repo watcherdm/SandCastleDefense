@@ -1,5 +1,6 @@
 import pygame, os, sys
 
+
 class EventedSprite(pygame.sprite.Sprite):
   def __init__(self):
     pygame.sprite.Sprite.__init__(self)
@@ -65,6 +66,25 @@ class EventedSprite(pygame.sprite.Sprite):
   def on_click(self, event):
     return 0
 
+class EventedSurface(pygame.Surface, EventedSprite):
+  def __init__(self, size):
+    pygame.Surface.__init__(self, size)
+    self.selected = False
+    self.mouse = {
+      'down': False,
+      'over': False
+    }
+    self.rect = self.get_rect
+
+class EventedShape(pygame.Surface, EventedSprite):
+  def __init__(self):
+    pygame.Rect.__init__(self)
+    self.selected = False
+    self.mouse = {
+      'down': False,
+      'over': False
+    }
+    self.rect = self
 
 
 def load_image(name, colorkey=None):
