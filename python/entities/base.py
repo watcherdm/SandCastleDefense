@@ -13,6 +13,11 @@ class EventedSprite(pygame.sprite.Sprite):
   def update(self, events):
     self.checkState(events)
 
+  def mousemove(self, event):
+    pos = pygame.mouse.get_pos()
+    if self.rect.collidepoint(pos):
+      self.on_mousemove(event)
+
   def mouseover(self, event):
     pos = pygame.mouse.get_pos()
     if self.rect.collidepoint(pos):
@@ -47,6 +52,7 @@ class EventedSprite(pygame.sprite.Sprite):
     for event in events:
       if event.type == pygame.QUIT: sys.exit()
       if event.type == pygame.MOUSEMOTION:
+        self.mousemove(event)
         self.mouseover(event)
       if event.type == pygame.MOUSEBUTTONDOWN:
         if event.button == 1:
@@ -58,6 +64,8 @@ class EventedSprite(pygame.sprite.Sprite):
   def on_mousedown(self, event):
     return 0
   def on_mouseup(self, event):
+    return 0
+  def on_mousemove(self, event):
     return 0
   def on_mouseover(self, event):
     return 0

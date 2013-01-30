@@ -2,6 +2,29 @@ import pygame
 from math import sin, cos, floor
 from base import *
 
+HIGHLIGHTCOLOR = pygame.Color('white')
+
+class HighlightBlock(EventedSurface):
+	def __init__(self):
+		surf = pygame.display.get_surface()
+		EventedSurface.__init__(self, surf.get_size())
+		self.rect = self.get_rect()
+		self.bs = 50
+		self.block_rect = None
+
+	def on_mousemove(self, event):
+		pos = ((event.pos[0] / self.bs) * self.bs, (event.pos[1] / self.bs) * self.bs)
+		top = pos[1] + 35
+		left = pos[0]
+		bottom = self.bs
+		right = self.bs
+		self.block_rect = pygame.Rect((left, top, right, bottom))
+
+	def draw(self, surf):
+		if self.block_rect:
+			pygame.draw.rect(surf, HIGHLIGHTCOLOR, self.block_rect, 3)
+
+
 class Button(EventedSurface):
 	def __init__(self):
 		self.radius = 12
@@ -65,7 +88,7 @@ class FireTowerButton(StructureButton):
 		StructureButton.__init__(self, 'FireTower')
 		self.rect.left = 300
 
-	def on_click(event):
+	def on_click(self, event):
 		print "Fire Tower Selected"
 
 class IceTowerButton(StructureButton):
@@ -73,7 +96,7 @@ class IceTowerButton(StructureButton):
 		StructureButton.__init__(self, 'IceTower')
 		self.rect.left = 330
 
-	def on_click(event):
+	def on_click(self, event):
 		print "Ice Tower Selected"
 
 class LightningTowerButton(StructureButton):
@@ -81,7 +104,7 @@ class LightningTowerButton(StructureButton):
 		StructureButton.__init__(self, 'LightningTower')
 		self.rect.left = 360
 
-	def on_click(event):
+	def on_click(self, event):
 		print "Lightning Tower Selected"
 
 class TrenchButton(StructureButton):

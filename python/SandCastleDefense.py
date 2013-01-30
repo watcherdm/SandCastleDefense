@@ -42,12 +42,18 @@ def main():
 	selectable = build_castle(selectable)
 	menuitems = FireTowerButton(), IceTowerButton(), LightningTowerButton()
 
+	world = HighlightBlock()
+
 	clock = pygame.time.Clock()
 
 	i = 1
 	wave = get_line(i, WAVEPRECISION)
 	wave_count = 0
 	ocean = None
+	menuring = MenuRing(jenai)
+	for m in menuitems:
+		menuring.add_button(m)
+
 	while True:
 		events = pygame.event.get()
 		if i % 100 == 0:
@@ -59,23 +65,23 @@ def main():
 		if wave_count >= len(wave):
 			wave_count = 0
 			wave = get_line(wave_count + 1, WAVEPRECISION)
-			
+		
+		world.update(events)
 		sand.fill(BEACHCOLOR)
 		selectable.update(events)
-		menuring = MenuRing(jenai)
-		for m in menuitems:
-			menuring.add_button(m)
 		selectable.draw(sand)
+
 		menuring.update()
 		menuring.draw(sand)
 		for m in menuitems:
+			m.update(events)
 			m.draw(sand)
 
 		ocean = build_ocean(wave[wave_count], current_tide_level)
 		if oldocean == None or oldocean.top > ocean.top or WETSANDCOLOR.a == 0:
 			oldocean = ocean
 			WETSANDCOLOR.a = 255
-
+		world.draw(sand)
 		if (i % 3 == 0):
 			wave_count += 1
 
