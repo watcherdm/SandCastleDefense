@@ -1,5 +1,5 @@
 import os, sys, pygame, glob
-from base import EventedSprite, load_image
+from base import EventedSprite, load_image, World
 
 class Character(EventedSprite):
     def __init__(self, name = None, position = (0,0)):
@@ -36,6 +36,7 @@ class SelectableCharacter(Character):
     def __init__(self, name, position = (10,10)):
         Character.__init__(self, name, position)
         screen = pygame.display.get_surface()
+        self.world = World()
         self.destinations = []
         self.structures = []
         self.area = screen.get_rect()
@@ -80,9 +81,11 @@ class SelectableCharacter(Character):
 
     def select(self):
         self.selected = True
+        self.world.set_selected(self)
 
     def deselect(self):
         self.selected = False
+        self.world.set_selected(None)
 
     def setDestination(self, position):
         self.moving = True
@@ -95,6 +98,9 @@ class SelectableCharacter(Character):
     def on_click(self, event):
         self.select()
         print self.name + " selected"
+
+    def selected_update(self, event):
+        self.setDestination(event.pos)
 
 class Jenai(SelectableCharacter):
     def __init__(self):

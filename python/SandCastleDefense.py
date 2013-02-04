@@ -1,6 +1,7 @@
 #! /usr/bin/python
 
 import pygame, sys, random
+from entities.base import *
 from entities.Characters import *
 from entities.Structures import *
 from entities.Menu import *
@@ -16,6 +17,7 @@ BEACHCOLOR = pygame.Color(255, 222, 73, 1)
 OCEANCOLOR = pygame.Color(73, 130, 255)
 WETSANDCOLOR = pygame.Color(94,82,69, 50)
 WAVEPRECISION = 100
+world = World()
 def main():
 	pygame.init()
 	pygame.mixer.music.load('sounds/oceanwave.wav')
@@ -42,7 +44,7 @@ def main():
 	selectable = build_castle(selectable)
 	menuitems = FireTowerButton(), IceTowerButton(), LightningTowerButton()
 
-	world = HighlightBlock()
+	hl_block = HighlightBlock()
 
 	clock = pygame.time.Clock()
 
@@ -66,7 +68,7 @@ def main():
 			wave_count = 0
 			wave = get_line(wave_count + 1, WAVEPRECISION)
 		
-		world.update(events)
+		hl_block.update(events)
 		sand.fill(BEACHCOLOR)
 		selectable.update(events)
 		selectable.draw(sand)
@@ -77,11 +79,13 @@ def main():
 			m.update(events)
 			m.draw(sand)
 
+		world.update(events)
+
 		ocean = build_ocean(wave[wave_count], current_tide_level)
 		if oldocean == None or oldocean.top > ocean.top or WETSANDCOLOR.a == 0:
 			oldocean = ocean
 			WETSANDCOLOR.a = 255
-		world.draw(sand)
+		hl_block.draw(sand)
 		if (i % 3 == 0):
 			wave_count += 1
 

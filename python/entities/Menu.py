@@ -14,7 +14,7 @@ class HighlightBlock(EventedSurface):
 
 	def on_mousemove(self, event):
 		pos = ((event.pos[0] / self.bs) * self.bs, (event.pos[1] / self.bs) * self.bs)
-		top = pos[1] + 35
+		top = pos[1]
 		left = pos[0]
 		bottom = self.bs
 		right = self.bs
