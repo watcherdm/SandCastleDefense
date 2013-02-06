@@ -34,9 +34,13 @@ def main():
 	jenai.rect.top = 100
 	jenai.rect.left = 100
 
+	jenai2 = Jenai()
+	jenai2.rect.top = 100
+	jenai2.rect.left = 300
+
 	selectable = pygame.sprite.OrderedUpdates()
 	selectable = build_castle(selectable)
-	selectable.add(jenai)
+	selectable.add(jenai, jenai2)
 	oldocean = None
 	selected = None
 
@@ -50,7 +54,7 @@ def main():
 	wave = get_line(i, WAVEPRECISION)
 	wave_count = 0
 	ocean = None
-	menuring = MenuRing(jenai)
+	menuring = MenuRing()
 	for m in menuitems:
 		menuring.add_button(m)
 
@@ -106,7 +110,9 @@ def build_ocean(wave_point, tide_level=.5):
 	height = oceanbase + waveheight
 	ocean = pygame.Rect((0, SCREENHEIGHT - height) + SCREENSIZE)
 	return ocean
-	
+
+def build_wet_sand():
+	return False
 
 def build_castle(group):
 	top = 0

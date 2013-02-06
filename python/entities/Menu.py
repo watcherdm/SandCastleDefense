@@ -1,5 +1,5 @@
 import pygame
-from math import sin, cos, floor
+from math import sin, cos, floor, radians
 from base import *
 
 HIGHLIGHTCOLOR = pygame.Color('white')
@@ -30,12 +30,16 @@ class Button(EventedSurface):
 		self.radius = 12
 		EventedSurface.__init__(self, (self.radius * 2, self.radius * 2))
 		self.rect = self.get_rect()
+		self.ring = None
 
 	def set_center_position(self, pos):
 		self.rect.center = [floor(x) for x in pos]
 
 	def draw(self, surf):
-		pygame.draw.circle(surf, ENERGYCOLOR, self.rect.center, self.radius, 0)
+		if self.ring == None:
+			return
+		if self.ring.is_active():
+			pygame.draw.circle(surf, ENERGYCOLOR, self.rect.center, self.radius, 0)
 
 	def on_click(self, event):
 		print "TEST"
@@ -43,12 +47,25 @@ class Button(EventedSurface):
 
 ENERGYCOLOR = pygame.Color(0, 231, 255)
 
+
 class MenuRing:
-	def __init__(self, target):
+	angleSoFar = 0
+	def __init__(self, target = None):
+		self.world = World(pygame.display.get_surface().get_size())
 		self.target = target
 		self.buttons = []
 
+	def is_active(self):
+		return self.target != None
+
+	def set_target(self, target):
+		self.target = target;
+
 	def update(self):
+		if self.world.has_selected():
+			self.target = self.world.get_selected()
+		if self.target == None:
+			return
 		self.left = self.target.rect.left
 		self.top = self.target.rect.top
 		targetCenter = (self.target.rect.width / 2, self.target.rect.height / 2)
@@ -60,11 +77,14 @@ class MenuRing:
 		degrees = 360
 		count = len(self.buttons)
 		if count > 0:
-			radians = (degrees / count) * 180
-			angle = 0
+			points = (degrees / count)
+			angle = self.angleSoFar
 			for button in self.buttons:
-				button.set_center_position(self.button_center(angle))
-				angle += radians 
+				button.set_center_position(self.button_center(radians(angle)))
+				angle += points
+			if self.angleSoFar == 360:
+				self.angleSoFar = -1
+			self.angleSoFar += 1
 
 
 	def button_center(self, angle):
@@ -73,10 +93,13 @@ class MenuRing:
 		return (x, y)
 
 	def draw(self, surf):
+		if self.target == None:
+			return
 		pygame.draw.circle(surf, ENERGYCOLOR, self.center, self.radius, 4)
 
 
 	def add_button(self, button):
+		button.ring = self
 		self.buttons.append(button)
 
 class StructureButton(Button):
