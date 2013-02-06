@@ -91,7 +91,11 @@ class World(pygame.Surface, EventedSprite):
       'down': False,
       'over': False
     }
+    self._supress = False
     self.rect = self.get_rect()
+
+  def stop_event_propogation(self):
+    self._supress = True
 
   def selection_changed(self):
     self._selection_changed = True
@@ -112,6 +116,9 @@ class World(pygame.Surface, EventedSprite):
     return self._selected
 
   def update(self, events):
+    if self._supress == True:
+      self._supress = False
+      return
     self.checkState(events)
 
   def on_click(self, event):

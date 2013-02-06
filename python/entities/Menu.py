@@ -27,7 +27,8 @@ class HighlightBlock(EventedSurface):
 
 class Button(EventedSurface):
 	def __init__(self):
-		self.radius = 12
+		self.world = World(pygame.display.get_surface().get_size())
+		self.radius = 16
 		EventedSurface.__init__(self, (self.radius * 2, self.radius * 2))
 		self.rect = self.get_rect()
 		self.ring = None
@@ -40,6 +41,7 @@ class Button(EventedSurface):
 			return
 		if self.ring.is_active():
 			pygame.draw.circle(surf, ENERGYCOLOR, self.rect.center, self.radius, 0)
+
 
 	def on_click(self, event):
 		print "TEST"
@@ -54,6 +56,7 @@ class MenuRing:
 		self.world = World(pygame.display.get_surface().get_size())
 		self.target = target
 		self.buttons = []
+		self.is_animating = True
 
 	def is_active(self):
 		return self.target != None
@@ -84,8 +87,8 @@ class MenuRing:
 				angle += points
 			if self.angleSoFar == 360:
 				self.angleSoFar = -1
-			self.angleSoFar += 1
-
+			if self.is_animating:
+				self.angleSoFar += 1
 
 	def button_center(self, angle):
 		x = self.radius * cos(angle) + self.center[0]
@@ -103,36 +106,77 @@ class MenuRing:
 		self.buttons.append(button)
 
 class StructureButton(Button):
+	image_base = 'shovel_'
+	extension = '.png'
+	enabled = False
+
 	def __init__(self, type):
+		self.type = type
+		self.image_base = type + '_'
+		self.images = {
+			'enabled': None,
+			'disabled': None
+		}
 		Button.__init__(self)
+
+	def on_mouseenter(self, event):
+		self.enable()
+		self.ring.is_animating = False
+
+	def on_mousemove(self, event):
+		self.enable()
+		self.ring.is_animating = False
+
+	def on_mouseout(self, event):
+		self.disable()
+		self.ring.is_animating = True
+
+	def on_click(self, event):
+		self.world.stop_event_propogation()
+		print self.type + "Trench Tool Selected"
+	
+	def state(self):
+		return 'enabled' if self.enabled == True else 'disabled'
+
+	def enable(self):
+		self.enabled = True
+
+	def disable(self):
+		self.enabled = False
+
+	def get_image_path(self):
+		return self.image_base + self.state() + self.extension
+
+	def get_image(self):
+		state = self.state()
+		img = self.images[state]
+		if img == None:
+			self.images[state] = load_image(self.get_image_path(), -1)
+		return self.images[state]
+
+	def draw(self, surf):
+		Button.draw(self, surf)
+		self.image, rect = self.get_image()
+		surf.blit(self.image, (self.rect.left, self.rect.top))
+
 
 class FireTowerButton(StructureButton):
 	def __init__(self):
-		StructureButton.__init__(self, 'FireTower')
-		self.rect.left = 300
-
-	def on_click(self, event):
-		print "Fire Tower Selected"
+		StructureButton.__init__(self, 'tower')
 
 class IceTowerButton(StructureButton):
 	def __init__(self):
-		StructureButton.__init__(self, 'IceTower')
-		self.rect.left = 330
-
-	def on_click(self, event):
-		print "Ice Tower Selected"
+		StructureButton.__init__(self, 'tower')
 
 class LightningTowerButton(StructureButton):
 	def __init__(self):
-		StructureButton.__init__(self, 'LightningTower')
-		self.rect.left = 360
-
-	def on_click(self, event):
-		print "Lightning Tower Selected"
+		StructureButton.__init__(self, 'tower')
 
 class TrenchButton(StructureButton):
+
 	def __init__(self):
-		StructureButton.__init__(self, 'Trench')
+		StructureButton.__init__(self, 'shovel')
+
 
 if __name__ == '__main__':
 	# run some tests

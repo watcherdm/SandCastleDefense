@@ -17,9 +17,9 @@ BEACHCOLOR = pygame.Color(255, 222, 73, 1)
 OCEANCOLOR = pygame.Color(73, 130, 255)
 WETSANDCOLOR = pygame.Color(94,82,69, 50)
 WAVEPRECISION = 100
-world = World(SCREENSIZE)
 def main():
 	pygame.init()
+	world = World(SCREENSIZE)
 	pygame.mixer.music.load('sounds/oceanwave.wav')
 	pygame.mixer.music.play(100)
 	pygame.display.set_caption('Sand Castle Defense ' + version)
@@ -44,7 +44,7 @@ def main():
 	oldocean = None
 	selected = None
 
-	menuitems = FireTowerButton(), IceTowerButton(), LightningTowerButton()
+	menuitems = FireTowerButton(), IceTowerButton(), LightningTowerButton(), TrenchButton()
 
 	hl_block = HighlightBlock()
 
@@ -73,12 +73,6 @@ def main():
 		hl_block.update(events)
 		sand.fill(BEACHCOLOR)
 
-		menuring.update()
-		menuring.draw(sand)
-		for m in menuitems:
-			m.update(events)
-			m.draw(sand)
-
 
 		ocean = build_ocean(wave[wave_count], current_tide_level)
 		if oldocean == None or oldocean.top > ocean.top or WETSANDCOLOR.a == 0:
@@ -99,6 +93,13 @@ def main():
 		selectable.draw(sand)
 		world.update(events)
 		sand.fill(OCEANCOLOR, ocean)
+		
+		menuring.update()
+		menuring.draw(sand)
+		for m in menuitems:
+			m.update(events)
+			m.draw(sand)
+
 		pygame.display.flip()
 		clock.tick(60)
 		i+= 1
