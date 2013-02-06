@@ -31,21 +31,3 @@ class TowerSegment(EventedSprite):
 	def __init__(self):
 		EventedSprite.__init__(self)
 		self.image, self.rect = load_image('tower_segment_0.png', -1)
-
-class World(EventedSprite):
-	def __init__(self, name = "beach", grid_size = 50):
-		EventedSprite.__init__(self)
-		self.image, self.rect = load_image(name + '.jpg', -1)
-		self.grid_size = grid_size
-		self.selected = None
-	def draw(self, surfaceObj):
-		surfaceObj.blit(self.image, (0, 0))
-
-	def setSelected(self, sprite):
-		if self.selected:
-			self.selected.deselect() #this should only allow one selection at a time
-		self.selected = sprite
-
-	def on_click(self, event):
-		if self.selected:
-			self.selected.setDestination(pygame.mouse.get_pos())

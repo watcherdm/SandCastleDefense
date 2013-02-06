@@ -1,6 +1,9 @@
 import os, sys, pygame, glob
 from base import EventedSprite, load_image, World
 
+
+BLOCKSIZE = 50
+
 class Character(EventedSprite):
     def __init__(self, name = None, position = (0,0)):
         if not name: raise 1
@@ -36,7 +39,7 @@ class SelectableCharacter(Character):
     def __init__(self, name, position = (10,10)):
         Character.__init__(self, name, position)
         screen = pygame.display.get_surface()
-        self.world = World()
+        self.world = World(screen.get_size())
         self.destinations = []
         self.structures = []
         self.area = screen.get_rect()
@@ -87,9 +90,9 @@ class SelectableCharacter(Character):
         self.selected = False
         self.world.set_selected(None)
 
-    def setDestination(self, position):
+    def set_destination(self, position):
         self.moving = True
-        self.destinations.append(((position[0] / 64) * 64, (position[1] / 64) * 64))
+        self.destinations.append(((position[0] / BLOCKSIZE) * BLOCKSIZE, (position[1] / BLOCKSIZE) * BLOCKSIZE))
 
     def setProject(self, structure):
         self.building = True
@@ -100,7 +103,7 @@ class SelectableCharacter(Character):
         print self.name + " selected"
 
     def selected_update(self, event):
-        self.setDestination(event.pos)
+        self.set_destination(event.pos)
 
 class Jenai(SelectableCharacter):
     def __init__(self):

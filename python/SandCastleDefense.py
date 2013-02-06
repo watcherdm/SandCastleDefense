@@ -17,7 +17,7 @@ BEACHCOLOR = pygame.Color(255, 222, 73, 1)
 OCEANCOLOR = pygame.Color(73, 130, 255)
 WETSANDCOLOR = pygame.Color(94,82,69, 50)
 WAVEPRECISION = 100
-world = World()
+world = World(SCREENSIZE)
 def main():
 	pygame.init()
 	pygame.mixer.music.load('sounds/oceanwave.wav')
@@ -33,15 +33,13 @@ def main():
 	jenai = Jenai()
 	jenai.rect.top = 100
 	jenai.rect.left = 100
-	selectable = pygame.sprite.OrderedUpdates(jenai)
+
+	selectable = pygame.sprite.OrderedUpdates()
+	selectable = build_castle(selectable)
+	selectable.add(jenai)
 	oldocean = None
 	selected = None
-	#testing
 
-	# TODO: Make this a list of tasks, that should put me in a good place
-	# to delegate the work of making tasks to the user input.
-	# 
-	selectable = build_castle(selectable)
 	menuitems = FireTowerButton(), IceTowerButton(), LightningTowerButton()
 
 	hl_block = HighlightBlock()
@@ -70,8 +68,6 @@ def main():
 		
 		hl_block.update(events)
 		sand.fill(BEACHCOLOR)
-		selectable.update(events)
-		selectable.draw(sand)
 
 		menuring.update()
 		menuring.draw(sand)
@@ -79,7 +75,6 @@ def main():
 			m.update(events)
 			m.draw(sand)
 
-		world.update(events)
 
 		ocean = build_ocean(wave[wave_count], current_tide_level)
 		if oldocean == None or oldocean.top > ocean.top or WETSANDCOLOR.a == 0:
@@ -96,6 +91,9 @@ def main():
 			oosurf.fill(WETSANDCOLOR)
 			sand.blit(oosurf, (oldocean.left, oldocean.top))
 
+		selectable.update(events)
+		selectable.draw(sand)
+		world.update(events)
 		sand.fill(OCEANCOLOR, ocean)
 		pygame.display.flip()
 		clock.tick(60)

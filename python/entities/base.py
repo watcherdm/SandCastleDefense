@@ -1,38 +1,5 @@
 import pygame, os, sys
 
-class World(object):
-  _selected = None
-  _instance = None
-  _selection_changed = False
-  def __new__(cls, *args, **kwargs):
-    if not cls._instance:
-      cls._instance = super(World, cls).__new__(
-                          cls, *args, **kwargs)
-    return cls._instance
-
-  def selection_changed(self):
-    self._selection_changed = True
-
-  def has_selected(self):
-    return self._selected != None
-
-  def set_selected(self, selectable):
-    self._selected = selectable
-    self.selection_changed()
-
-  def clear_selected(self, selectable = None):
-    if selectable == None or self._selected == selectable:
-      self._selected = None
-      self.selection_changed()
-
-  def get_selected(self):
-    return self._selected
-
-  def update(self, events):
-    if self._selected != None:
-      self._selected.selected_update(events)
-    self._selection_changed = False
-
 class EventedSprite(pygame.sprite.Sprite):
   def __init__(self):
     pygame.sprite.Sprite.__init__(self)
@@ -106,6 +73,53 @@ class EventedSprite(pygame.sprite.Sprite):
   def on_click(self, event):
     return 0
 
+class World(pygame.Surface, EventedSprite):
+  _selected = None
+  _instance = None
+  _selection_changed = False
+  
+  def __new__(cls, *args, **kwargs):
+    if not cls._instance:
+      cls._instance = super(World, cls).__new__(
+                          cls, *args, **kwargs)
+    return cls._instance
+
+  def __init__(self, size):
+    pygame.Surface.__init__(self, size)
+    self.selected = False
+    self.mouse = {
+      'down': False,
+      'over': False
+    }
+    self.rect = self.get_rect()
+
+  def selection_changed(self):
+    self._selection_changed = True
+
+  def has_selected(self):
+    return self._selected != None
+
+  def set_selected(self, selectable):
+    self._selected = selectable
+    self.selection_changed()
+
+  def clear_selected(self, selectable = None):
+    if selectable == None or self._selected == selectable:
+      self._selected = None
+      self.selection_changed()
+
+  def get_selected(self):
+    return self._selected
+
+  def update(self, events):
+    self.checkState(events)
+
+  def on_click(self, event):
+    if self._selected != None:
+      self._selected.selected_update(event)
+    self._selection_changed = False
+
+
 class EventedSurface(pygame.Surface, EventedSprite):
   def __init__(self, size):
     pygame.Surface.__init__(self, size)
@@ -114,7 +128,7 @@ class EventedSurface(pygame.Surface, EventedSprite):
       'down': False,
       'over': False
     }
-    self.rect = self.get_rect
+    self.rect = self.get_rect()
 
 class EventedShape(pygame.Surface, EventedSprite):
   def __init__(self):
