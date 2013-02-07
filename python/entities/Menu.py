@@ -4,6 +4,23 @@ from base import *
 
 HIGHLIGHTCOLOR = pygame.Color('white')
 
+class Project:
+	def __init__(self, type = 'idle'):
+		self.type = type
+		self.position = None
+		self.active = False
+
+	def set_position(self, pos = None):
+		if pos == None:
+			self.active = False
+		else:
+			self.active = True
+		self.position = pos
+
+	def get_position(self):
+		return self.position
+
+
 class HighlightBlock(EventedSurface):
 	def __init__(self):
 		surf = pygame.display.get_surface()
@@ -163,6 +180,11 @@ class StructureButton(Button):
 class FireTowerButton(StructureButton):
 	def __init__(self):
 		StructureButton.__init__(self, 'tower')
+		self.project = Project('firetower')
+
+	def on_click(self, event):
+		StructureButton.on_click(self, event);
+		self.world.get_selected().set_project(self.project)
 
 class IceTowerButton(StructureButton):
 	def __init__(self):
