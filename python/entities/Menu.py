@@ -1,25 +1,33 @@
 import pygame
 from math import sin, cos, floor, radians
 from base import *
+from Structures import *
 
 HIGHLIGHTCOLOR = pygame.Color('white')
+BLOCKSIZE = 50
 
 class Project:
 	def __init__(self, type = 'idle'):
 		self.type = type
 		self.position = None
 		self.active = False
+		self.structure = None
 
 	def set_position(self, pos = None):
 		if pos == None:
 			self.active = False
 		else:
 			self.active = True
-		self.position = pos
+		self.position = ((pos[0] / BLOCKSIZE) * BLOCKSIZE, (pos[1] / BLOCKSIZE) * BLOCKSIZE)
 
 	def get_position(self):
 		return self.position
 
+	def set_structure(self, structure):
+		self.structure = structure
+
+	def get_structure(self):
+		return self.structure
 
 class HighlightBlock(EventedSurface):
 	def __init__(self):
@@ -81,7 +89,7 @@ class MenuRing:
 	def set_target(self, target):
 		self.target = target;
 
-	def update(self):
+	def update(self, events):
 		if self.world.has_selected():
 			self.target = self.world.get_selected()
 		if self.target == None:
@@ -116,6 +124,8 @@ class MenuRing:
 		if self.target == None:
 			return
 		pygame.draw.circle(surf, ENERGYCOLOR, self.center, self.radius, 4)
+		for b in self.buttons:
+			b.draw(surf)
 
 
 	def add_button(self, button):
@@ -129,7 +139,8 @@ class StructureButton(Button):
 
 	def __init__(self, type):
 		self.type = type
-		self.image_base = type + '_'
+		if type != '':
+			self.image_base = 'tower_'
 		self.images = {
 			'enabled': None,
 			'disabled': None
@@ -150,7 +161,6 @@ class StructureButton(Button):
 
 	def on_click(self, event):
 		self.world.stop_event_propogation()
-		print self.type + "Trench Tool Selected"
 	
 	def state(self):
 		return 'enabled' if self.enabled == True else 'disabled'
@@ -162,7 +172,8 @@ class StructureButton(Button):
 		self.enabled = False
 
 	def get_image_path(self):
-		return self.image_base + self.state() + self.extension
+		prefix = self.type + '_' if self.state() == 'enabled' and self.type else ''
+		return prefix + self.image_base + self.state() + self.extension
 
 	def get_image(self):
 		state = self.state()
@@ -172,33 +183,56 @@ class StructureButton(Button):
 		return self.images[state]
 
 	def draw(self, surf):
-		Button.draw(self, surf)
-		self.image, rect = self.get_image()
-		surf.blit(self.image, (self.rect.left, self.rect.top))
+		if self.ring.is_active():
+			Button.draw(self, surf)
+			self.image, rect = self.get_image()
+			surf.blit(self.image, (self.rect.left, self.rect.top))
 
 
 class FireTowerButton(StructureButton):
 	def __init__(self):
-		StructureButton.__init__(self, 'tower')
-		self.project = Project('firetower')
+		StructureButton.__init__(self, 'fire')
 
 	def on_click(self, event):
-		StructureButton.on_click(self, event);
-		self.world.get_selected().set_project(self.project)
+		self.project = Project('firetower')
+		self.project.set_structure(TowerSegment())
+		StructureButton.on_click(self, event)
+		if self.world.has_selected():
+			self.world.get_selected().set_project(self.project)
 
 class IceTowerButton(StructureButton):
 	def __init__(self):
-		StructureButton.__init__(self, 'tower')
+		StructureButton.__init__(self, 'ice')
+
+	def on_click(self, event):
+		self.project = Project('icetower')
+		self.project.set_structure(TowerSegment())
+		StructureButton.on_click(self, event)
+		if self.world.has_selected():
+			self.world.get_selected().set_project(self.project)
 
 class LightningTowerButton(StructureButton):
 	def __init__(self):
-		StructureButton.__init__(self, 'tower')
+		StructureButton.__init__(self, 'lightning')
+
+	def on_click(self, event):
+		self.project = Project('lightningtower')
+		self.project.set_structure(TowerSegment())
+		StructureButton.on_click(self, event)
+		if self.world.has_selected():
+			self.world.get_selected().set_project(self.project)
 
 class TrenchButton(StructureButton):
 
 	def __init__(self):
-		StructureButton.__init__(self, 'shovel')
+		StructureButton.__init__(self, '')
 
+	def on_click(self, event):
+		self.project = Project('wall')
+		self.project.set_structure(WallSegment())
+		StructureButton.on_click(self, event)
+		if self.world.has_selected():
+			self.world.get_selected().set_project(self.project)
 
 if __name__ == '__main__':
 	# run some tests

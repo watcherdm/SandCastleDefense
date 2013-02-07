@@ -34,15 +34,17 @@ def main():
 	jenai.rect.top = 100
 	jenai.rect.left = 100
 
-	jenai2 = Jenai()
-	jenai2.rect.top = 100
-	jenai2.rect.left = 300
+	steve = Steve()
+	steve.rect.top = 100
+	steve.rect.left = 300
 
 	selectable = pygame.sprite.OrderedUpdates()
-	selectable = build_castle(selectable)
-	selectable.add(jenai, jenai2)
+	structures = pygame.sprite.OrderedUpdates()
+	selectable.add(jenai, steve)
 	oldocean = None
 	selected = None
+
+	world.structures = structures
 
 	menuitems = FireTowerButton(), IceTowerButton(), LightningTowerButton(), TrenchButton()
 
@@ -89,16 +91,17 @@ def main():
 			oosurf.fill(WETSANDCOLOR)
 			sand.blit(oosurf, (oldocean.left, oldocean.top))
 
+		menuring.update(events)
+		for m in menuitems:
+			m.update(events)
+		structures.update(events)
 		selectable.update(events)
+		structures.draw(sand)
 		selectable.draw(sand)
 		world.update(events)
 		sand.fill(OCEANCOLOR, ocean)
-		
-		menuring.update()
 		menuring.draw(sand)
-		for m in menuitems:
-			m.update(events)
-			m.draw(sand)
+
 
 		pygame.display.flip()
 		clock.tick(60)

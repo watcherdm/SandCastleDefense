@@ -19,6 +19,7 @@ class Character(EventedSprite):
         self.image = pygame.transform.scale(self.image, (50,50))
         self.rect = self.image.get_rect()
         self.rect.topleft = position
+        self.time_building = 0
 
     def update(self, events):
         self.ani_speed -= 1
@@ -33,6 +34,20 @@ class Character(EventedSprite):
             self.image = pygame.image.load(self.ani[self.ani_pos])
             self.image = pygame.transform.scale(self.image, (50, 50))
             self._walk()
+        if self.building:
+            self.image = pygame.image.load(self.ani[self.ani_pos])
+            if self.project.get_structure().time_to_build <= self.time_building:
+                self.time_building = 0
+                self.building = False
+                position = self.project.get_position()
+                structure = self.project.get_structure()
+                self.world.structures.add(self.project.get_structure())
+                structure.built = True
+                structure.rect.topleft = (position[0], position[1])
+                self.project.set_structure(None)
+                self.set_project(None)
+            else:
+                self.time_building += 1
 
 class SelectableCharacter(Character):
     "A selectable controllable character"
@@ -47,11 +62,11 @@ class SelectableCharacter(Character):
         self.building = False
         self.stepSize = 1
         self.selected = False
+        self.build_speed = 1
 
     def _walk(self):
         current_destination = self.destinations[0];
-        if  not current_destination:
-            print "removing the current destination"
+        if not current_destination:
             self.moving = False
             self.destinations.remove(current_destination)
 
@@ -65,6 +80,9 @@ class SelectableCharacter(Character):
         if fromLeft == 0 and fromTop == 0:
             self.moving = False
             self.destinations.remove(current_destination)
+            # you reached the destination, now build if you have a project
+            if self.project != None:
+                self.building = True
 
         movePosition = fromLeft, fromTop
 
@@ -94,7 +112,7 @@ class SelectableCharacter(Character):
         self.moving = True
         self.destinations.append(((position[0] / BLOCKSIZE) * BLOCKSIZE, (position[1] / BLOCKSIZE) * BLOCKSIZE))
 
-    def set_project(self, structure):
+    def set_project(self, project):
         self.project = project
 
     def on_click(self, event):
@@ -102,15 +120,17 @@ class SelectableCharacter(Character):
         print self.name + " selected"
 
     def selected_update(self, event):
-        if self.project != None:
-            self.project.set_position(event.pos)
-        else:
+        if not self.world._supress:
+            if self.project != None:
+                self.project.set_position(event.pos)
             self.set_destination(event.pos)
 
 class Jenai(SelectableCharacter):
     def __init__(self):
         SelectableCharacter.__init__(self, 'jenai', (0,0))
+        self.build_speed = 1.25
 
 class Steve(SelectableCharacter):
     def __init__(self):
         SelectableCharacter.__init__(self, 'steve', (0, 128))
+        self.build_speed = .75

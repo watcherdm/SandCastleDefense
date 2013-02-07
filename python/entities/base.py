@@ -77,7 +77,7 @@ class World(pygame.Surface, EventedSprite):
   _selected = None
   _instance = None
   _selection_changed = False
-  
+  structures = None  
   def __new__(cls, *args, **kwargs):
     if not cls._instance:
       cls._instance = super(World, cls).__new__(
