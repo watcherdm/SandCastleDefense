@@ -41,7 +41,7 @@ class SelectableCharacter(Character):
         screen = pygame.display.get_surface()
         self.world = World(screen.get_size())
         self.destinations = []
-        self.structures = []
+        self.project = None
         self.area = screen.get_rect()
         self.moving = False
         self.building = False
@@ -94,16 +94,18 @@ class SelectableCharacter(Character):
         self.moving = True
         self.destinations.append(((position[0] / BLOCKSIZE) * BLOCKSIZE, (position[1] / BLOCKSIZE) * BLOCKSIZE))
 
-    def setProject(self, structure):
-        self.building = True
-        self.structures.append(structure)
+    def set_project(self, structure):
+        self.project = project
 
     def on_click(self, event):
         self.select()
         print self.name + " selected"
 
     def selected_update(self, event):
-        self.set_destination(event.pos)
+        if self.project != None:
+            self.project.set_position(event.pos)
+        else:
+            self.set_destination(event.pos)
 
 class Jenai(SelectableCharacter):
     def __init__(self):
