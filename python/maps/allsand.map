@@ -1,0 +1,26 @@
+# Sand Castle Defense map file
+# s = sand
+# 1 = player 1 position
+# 2 = player 2 position
+# b = beachlady immovable object
+# d = driftwood immovable object
+# f = fire tower
+# i = ice tower
+# l = lightning tower
+# h = horizontal wall segment
+# v = vertical wallsegment
+# c = critters
+# 
+
+ssssssssssssssssssss
+s1ssssssssssssssss2s
+ssssssssssssssssssss
+ssssssssssssssssssss
+ssssssssssssssssssss
+ssssssssssssssssssss
+ssssssssssssssssssss
+ssssssssssssssssssss
+ssssssssssssssssssss
+ssssssssssssssssssss
+ssssssssssssssssssss
+ssssssssssssssssssss

@@ -1,22 +1,19 @@
 import os, sys, pygame, glob
-from base import EventedSprite, load_image, World
+from base import *
 
 
 BLOCKSIZE = 50
 
 class Character(EventedSprite):
     def __init__(self, name = None, position = (0,0)):
-        if not name: raise 1
         EventedSprite.__init__(self) #call Sprite intializer
         self.name = name
-        self.ani_speed_init = 10
+        self.ani_speed_init = 30
         self.ani_speed = self.ani_speed_init
-        self.ani = glob.glob("walk/" + self.name + "*.png")
-        self.ani.sort()
         self.ani_pos = 0
-        self.ani_max = len(self.ani) - 1
-        self.image = pygame.image.load(self.ani[self.ani_pos])
-        self.image = pygame.transform.scale(self.image, (50,50))
+        self.ani = load_sliced_sprites(self, BLOCKSIZE, BLOCKSIZE, 'walk/' + self.name + '_0.png')
+        self.ani_max = len(self.ani[0]) - 1
+        self.image = self.ani[0][self.ani_pos]
         self.rect = self.image.get_rect()
         self.rect.topleft = position
         self.time_building = 0
@@ -31,11 +28,10 @@ class Character(EventedSprite):
 
         self.checkState(events)
         if self.moving:
-            self.image = pygame.image.load(self.ani[self.ani_pos])
-            self.image = pygame.transform.scale(self.image, (50, 50))
+            self.image = self.ani[1][self.ani_pos]
             self._walk()
-        if self.building:
-            self.image = pygame.image.load(self.ani[self.ani_pos])
+        elif self.building:
+            self.image = self.ani[1][self.ani_pos]
             if self.project.get_structure().time_to_build <= self.time_building:
                 self.time_building = 0
                 self.building = False
@@ -48,6 +44,8 @@ class Character(EventedSprite):
                 self.set_project(None)
             else:
                 self.time_building += 1
+        else:
+            self.image = self.ani[0][self.ani_pos]
 
 class SelectableCharacter(Character):
     "A selectable controllable character"
@@ -65,10 +63,7 @@ class SelectableCharacter(Character):
         self.build_speed = 1
 
     def _walk(self):
-        current_destination = self.destinations[0];
-        if not current_destination:
-            self.moving = False
-            self.destinations.remove(current_destination)
+        current_destination = self.destinations[0]
 
         distance = fromLeft, fromTop = cmp(current_destination[0] - self.rect.left, 0), cmp(current_destination[1] - self.rect.top, 0)
 
@@ -78,6 +73,7 @@ class SelectableCharacter(Character):
             fromTop = 0
 
         if fromLeft == 0 and fromTop == 0:
+            self.ani_speed_init = 30
             self.moving = False
             self.destinations.remove(current_destination)
             # you reached the destination, now build if you have a project
@@ -109,6 +105,7 @@ class SelectableCharacter(Character):
         self.world.set_selected(None)
 
     def set_destination(self, position):
+        self.ani_speed_init = 10
         self.moving = True
         self.destinations.append(((position[0] / BLOCKSIZE) * BLOCKSIZE, (position[1] / BLOCKSIZE) * BLOCKSIZE))
 

@@ -42,7 +42,6 @@ def main():
 	structures = pygame.sprite.OrderedUpdates()
 	selectable.add(jenai, steve)
 	oldocean = None
-	selected = None
 
 	world.structures = structures
 
