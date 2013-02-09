@@ -31,10 +31,13 @@ def main():
 	speed = [2, 2]
 
 	jenai = Jenai()
+
+	# TODO: get player positions from map
 	jenai.rect.top = 100
 	jenai.rect.left = 100
 
 	steve = Steve()
+	# TODO: get player positions from map
 	steve.rect.top = 100
 	steve.rect.left = 300
 
@@ -45,7 +48,7 @@ def main():
 
 	world.structures = structures
 
-	menuitems = FireTowerButton(), IceTowerButton(), LightningTowerButton(), TrenchButton()
+	menuitems = FireTowerButton(), IceTowerButton(), LightningTowerButton(), TrenchButton(), TrenchButton()
 
 	hl_block = HighlightBlock()
 
@@ -99,6 +102,9 @@ def main():
 		structures.update(events)
 		selectable.update(events)
 		structures.draw(sand)
+		for structure in structures:
+			if structure.ring != None:
+				structure.ring.draw(sand)
 		selectable.draw(sand)
 		world.update(events)
 		sand.fill(OCEANCOLOR, ocean)

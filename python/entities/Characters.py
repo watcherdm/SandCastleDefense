@@ -40,23 +40,21 @@ class Character(EventedSprite):
             self._walk()
         elif self.building:
             self.image = self.ani[2][self.ani_pos]
-            if self.project.get_structure().time_to_build <= self.time_building:
-                self.time_building = 0
-                self.building = False
-                position = self.project.get_position()
-                structure = self.project.get_structure()
-                self.world.structures.add(self.project.get_structure())
-                structure.built = True
-                if structure.rect != None and position != None:
-                    structure.rect.topleft = (position[0], position[1])
-                self.project.set_structure(None)
-                self.set_project(None)
-            else:
-                self.time_building += 1
+            position = self.project.get_position()
+            structure = self.project.get_structure()
+            structure.build(self, position)
         else:
+            if self.health < self.max_health:
+                self.health += 0.1
             self.image = self.ani[0][self.ani_pos]
         self.face_direction()
 
+    def finish_project(self):
+        self.time_building = 0
+        self.building = False
+        self.project.set_structure(None)
+        self.set_project(None)
+                
 class SelectableCharacter(Character):
     "A selectable controllable character"
     def __init__(self, name, position = (10,10)):
@@ -85,7 +83,7 @@ class SelectableCharacter(Character):
         if fromLeft == 0 and fromTop == 0:
             self.ani_speed_init = 30
             self.moving = False
-            self.destinations.remove(current_destination)
+            self.destinations = []
             # you reached the destination, now build if you have a project
             if self.project != None:
                 self.building = True
@@ -106,9 +104,13 @@ class SelectableCharacter(Character):
         self.world.set_selected(None)
 
     def set_destination(self, position):
-        self.ani_speed_init = 10
-        self.moving = True
-        self.destinations.append(((position[0] / BLOCKSIZE) * BLOCKSIZE, (position[1] / BLOCKSIZE) * BLOCKSIZE))
+        if not self.building:
+            self.ani_speed_init = 10
+            self.moving = True
+            self.destinations.append(((position[0] / BLOCKSIZE) * BLOCKSIZE, (position[1] / BLOCKSIZE) * BLOCKSIZE))
+
+    def has_project(self):
+        return self.project != None
 
     def set_project(self, project):
         self.project = project
@@ -119,9 +121,10 @@ class SelectableCharacter(Character):
 
     def selected_update(self, event):
         if not self.world._supress:
-            if self.project != None:
+            if self.has_project() and not self.project.has_position():
                 self.project.set_position(event.pos)
-            self.set_destination(event.pos)
+            elif not self.building:
+                self.set_destination(event.pos)
 
 class Jenai(SelectableCharacter):
     def __init__(self):

@@ -3,7 +3,7 @@ from math import sin, cos, floor, radians
 from base import *
 from Structures import *
 
-HIGHLIGHTCOLOR = pygame.Color('white')
+HIGHLIGHTCOLOR = pygame.Color(255, 255, 255)
 ENERGYCOLOR = pygame.Color(0, 231, 255)
 LIFECOLOR = pygame.Color(255, 0, 0)
 BLOCKSIZE = 50
@@ -14,6 +14,9 @@ class Project:
 		self.position = None
 		self.active = False
 		self.structure = None
+
+	def has_position(self):
+		return self.position != None
 
 	def set_position(self, pos = None):
 		if pos == None:
@@ -80,6 +83,13 @@ class Ring:
 	def __init__(self, target = None):
 		self.world = World(pygame.display.get_surface().get_size())
 		self.target = target
+		self.alpha = 128
+		self.value = 0
+		self.max = 0
+		self.rect = None
+
+	def get_angle(self):
+		return (self.value * 360) / self.max
 
 	def circle_point(self, angle):
 		x = self.radius * cos(angle) + self.center[0]
@@ -87,35 +97,48 @@ class Ring:
 		return (x, y)
 
 	def update(self, events):
-		if self.world.has_selected():
-			self.target = self.world.get_selected()
+		if self.target != None:
 			self.rect = self.target.rect
+			self.value = self.target.health
+			self.max = self.target.max_health
+			self.left = self.rect.left
+			self.top = self.rect.top
+			targetCenter = (self.rect.width / 2, self.rect.height / 2)
+			self.center = (self.left + (targetCenter[0]),  self.top + (targetCenter[1]))
+			self.radius = self.rect.width / 2
 
 
 
 class HealthRing(Ring):
-	def __init__(self, target = None):
-		Ring.__init__(self, target)
-		self.value = 0
-		self.max = 0
-	
-	def get_angle(self):
-		return (self.value * 360) / self.max
-	
-
 	def draw(self, surf):
-		if self.target == None:
+		if self.target == None or self.rect == None:
 			return
-
-		pygame.draw.arc(surf, LIFECOLOR, self.rect, radians(270), radians(self.get_angle() + 270), 4)
+		pygame.draw.circle(surf, pygame.Color('black'), self.center, self.radius, 4)
+		pygame.draw.arc(surf, LIFECOLOR, self.rect, radians(270), radians(self.get_angle() - 270), 4)
 
 	def update(self, events):
-		Ring.update(self, events)
+		if self.world.has_selected():
+			self.target = self.world.get_selected()
 		if self.target == None:
 			return
-		self.value = self.target.health
-		self.max = self.target.max_health
+		Ring.update(self, events)
+		self.rect = self.rect.inflate(20, 20)
+		self.radius = self.rect.width / 2
 
+class StructureRing(Ring):
+	def draw(self, surf):
+		if self.target == None or self.rect == None:
+			return
+		print self.get_angle()
+		pygame.draw.circle(surf, pygame.Color('black'), self.center, self.radius, 4)
+		pygame.draw.arc(surf, LIFECOLOR, self.rect, radians(270), radians(self.get_angle() - 270), 4)
+
+	def update(self, events):
+		if self.target == None:
+			return
+		Ring.update(self, events)
+		self.rect = self.rect.inflate(20, 20)
+		self.radius = self.rect.width / 2
 
 class MenuRing(Ring):
 	angleSoFar = 0
@@ -130,13 +153,11 @@ class MenuRing(Ring):
 		self.target = target;
 
 	def update(self, events):
+		if self.world.has_selected():
+			self.target = self.world.get_selected()
 		Ring.update(self, events)
 		if self.target == None:
 			return
-		self.left = self.rect.left
-		self.top = self.rect.top
-		targetCenter = (self.rect.width / 2, self.rect.height / 2)
-		self.center = (self.left + (targetCenter[0]),  self.top + (targetCenter[1]))
 		self.radius = self.rect.width
 		self.update_buttons()
 
@@ -223,11 +244,14 @@ class FireTowerButton(StructureButton):
 		StructureButton.__init__(self, 'fire')
 
 	def on_click(self, event):
-		self.project = Project('firetower')
-		self.project.set_structure(TowerSegment())
-		StructureButton.on_click(self, event)
 		if self.world.has_selected():
-			self.world.get_selected().set_project(self.project)
+			if not self.world.get_selected().has_project():
+				self.project = Project('firetower')
+				structure = TowerSegment()
+				structure.ring = StructureRing(structure)
+				self.project.set_structure(structure)
+				StructureButton.on_click(self, event)
+				self.world.get_selected().set_project(self.project)
 
 class IceTowerButton(StructureButton):
 	def __init__(self):
@@ -235,7 +259,9 @@ class IceTowerButton(StructureButton):
 
 	def on_click(self, event):
 		self.project = Project('icetower')
-		self.project.set_structure(TowerSegment())
+		structure = TowerSegment()
+		structure.ring = StructureRing(structure)
+		self.project.set_structure(structure)
 		StructureButton.on_click(self, event)
 		if self.world.has_selected():
 			self.world.get_selected().set_project(self.project)
@@ -246,7 +272,9 @@ class LightningTowerButton(StructureButton):
 
 	def on_click(self, event):
 		self.project = Project('lightningtower')
-		self.project.set_structure(TowerSegment())
+		structure = TowerSegment()
+		structure.ring = StructureRing(structure)
+		self.project.set_structure(structure)
 		StructureButton.on_click(self, event)
 		if self.world.has_selected():
 			self.world.get_selected().set_project(self.project)
