@@ -6,6 +6,9 @@ BLOCKSIZE = 50
 
 class Character(EventedSprite):
     def __init__(self, name = None, position = (0,0)):
+        self.direction = 1
+        self.max_health = 500
+        self.health = 200
         EventedSprite.__init__(self) #call Sprite intializer
         self.name = name
         self.ani_speed_init = 30
@@ -17,6 +20,11 @@ class Character(EventedSprite):
         self.rect = self.image.get_rect()
         self.rect.topleft = position
         self.time_building = 0
+
+    def face_direction(self):
+        if self.direction < 0:
+            self.image = pygame.transform.flip(self.image, True, False)
+
 
     def update(self, events):
         self.ani_speed -= 1
@@ -31,7 +39,7 @@ class Character(EventedSprite):
             self.image = self.ani[1][self.ani_pos]
             self._walk()
         elif self.building:
-            self.image = self.ani[1][self.ani_pos]
+            self.image = self.ani[2][self.ani_pos]
             if self.project.get_structure().time_to_build <= self.time_building:
                 self.time_building = 0
                 self.building = False
@@ -39,13 +47,15 @@ class Character(EventedSprite):
                 structure = self.project.get_structure()
                 self.world.structures.add(self.project.get_structure())
                 structure.built = True
-                structure.rect.topleft = (position[0], position[1])
+                if structure.rect != None and position != None:
+                    structure.rect.topleft = (position[0], position[1])
                 self.project.set_structure(None)
                 self.set_project(None)
             else:
                 self.time_building += 1
         else:
             self.image = self.ani[0][self.ani_pos]
+        self.face_direction()
 
 class SelectableCharacter(Character):
     "A selectable controllable character"
@@ -82,16 +92,7 @@ class SelectableCharacter(Character):
 
         movePosition = fromLeft, fromTop
 
-        if (movePosition == (0, 0)):
-            self.direction = None
-        elif (movePosition == (1, 0)):
-            self.direction = 'right'
-        elif (movePosition == (0, 1)):
-            self.direction = 'down'
-        elif (movePosition == (-1, 0)):
-            self.direction = 'left'
-        elif (movePosition == (0, -1)):
-            self.direction = 'up'
+        self.direction = fromLeft
 
         newpos = self.rect.move(movePosition)
         self.rect = newpos
@@ -125,9 +126,13 @@ class SelectableCharacter(Character):
 class Jenai(SelectableCharacter):
     def __init__(self):
         SelectableCharacter.__init__(self, 'jenai', (0,0))
+        self.health = 200
+        self.max_health = 200
         self.build_speed = 1.25
 
 class Steve(SelectableCharacter):
     def __init__(self):
         SelectableCharacter.__init__(self, 'steve', (0, 128))
+        self.health = 200
+        self.max_health = 200
         self.build_speed = .75

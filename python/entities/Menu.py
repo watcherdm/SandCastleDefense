@@ -4,6 +4,8 @@ from base import *
 from Structures import *
 
 HIGHLIGHTCOLOR = pygame.Color('white')
+ENERGYCOLOR = pygame.Color(0, 231, 255)
+LIFECOLOR = pygame.Color(255, 0, 0)
 BLOCKSIZE = 50
 
 class Project:
@@ -72,17 +74,55 @@ class Button(EventedSurface):
 		print "TEST"
 		return 1
 
-ENERGYCOLOR = pygame.Color(0, 231, 255)
 
-
-class MenuRing:
-	angleSoFar = 0
+class Ring:
+	value = 0
 	def __init__(self, target = None):
 		self.world = World(pygame.display.get_surface().get_size())
 		self.target = target
-		self.buttons = []
-		self.is_animating = True
 
+	def circle_point(self, angle):
+		x = self.radius * cos(angle) + self.center[0]
+		y = self.radius * sin(angle) + self.center[1]
+		return (x, y)
+
+	def update(self, events):
+		if self.world.has_selected():
+			self.target = self.world.get_selected()
+			self.rect = self.target.rect
+
+
+
+class HealthRing(Ring):
+	def __init__(self, target = None):
+		Ring.__init__(self, target)
+		self.value = 0
+		self.max = 0
+	
+	def get_angle(self):
+		return (self.value * 360) / self.max
+	
+
+	def draw(self, surf):
+		if self.target == None:
+			return
+
+		pygame.draw.arc(surf, LIFECOLOR, self.rect, radians(270), radians(self.get_angle() + 270), 4)
+
+	def update(self, events):
+		Ring.update(self, events)
+		if self.target == None:
+			return
+		self.value = self.target.health
+		self.max = self.target.max_health
+
+
+class MenuRing(Ring):
+	angleSoFar = 0
+	def __init__(self, target = None):
+		Ring.__init__(self, target)
+		self.buttons = []
+	
 	def is_active(self):
 		return self.target != None
 
@@ -90,15 +130,14 @@ class MenuRing:
 		self.target = target;
 
 	def update(self, events):
-		if self.world.has_selected():
-			self.target = self.world.get_selected()
+		Ring.update(self, events)
 		if self.target == None:
 			return
-		self.left = self.target.rect.left
-		self.top = self.target.rect.top
-		targetCenter = (self.target.rect.width / 2, self.target.rect.height / 2)
+		self.left = self.rect.left
+		self.top = self.rect.top
+		targetCenter = (self.rect.width / 2, self.rect.height / 2)
 		self.center = (self.left + (targetCenter[0]),  self.top + (targetCenter[1]))
-		self.radius = self.target.rect.width
+		self.radius = self.rect.width
 		self.update_buttons()
 
 	def update_buttons(self):
@@ -108,17 +147,10 @@ class MenuRing:
 			points = (degrees / count)
 			angle = self.angleSoFar
 			for button in self.buttons:
-				button.set_center_position(self.button_center(radians(angle)))
+				button.set_center_position(self.circle_point(radians(angle)))
 				angle += points
 			if self.angleSoFar == 360:
 				self.angleSoFar = -1
-			if self.is_animating:
-				self.angleSoFar += 1
-
-	def button_center(self, angle):
-		x = self.radius * cos(angle) + self.center[0]
-		y = self.radius * sin(angle) + self.center[1]
-		return (x, y)
 
 	def draw(self, surf):
 		if self.target == None:
@@ -149,15 +181,12 @@ class StructureButton(Button):
 
 	def on_mouseenter(self, event):
 		self.enable()
-		self.ring.is_animating = False
 
 	def on_mousemove(self, event):
 		self.enable()
-		self.ring.is_animating = False
 
 	def on_mouseout(self, event):
 		self.disable()
-		self.ring.is_animating = True
 
 	def on_click(self, event):
 		self.world.stop_event_propogation()

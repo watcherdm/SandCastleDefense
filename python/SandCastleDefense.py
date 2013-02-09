@@ -59,6 +59,8 @@ def main():
 	for m in menuitems:
 		menuring.add_button(m)
 
+	healthring = HealthRing()
+
 	while True:
 		events = pygame.event.get()
 		if i % 100 == 0:
@@ -91,6 +93,7 @@ def main():
 			sand.blit(oosurf, (oldocean.left, oldocean.top))
 
 		menuring.update(events)
+		healthring.update(events)
 		for m in menuitems:
 			m.update(events)
 		structures.update(events)
@@ -100,6 +103,7 @@ def main():
 		world.update(events)
 		sand.fill(OCEANCOLOR, ocean)
 		menuring.draw(sand)
+		healthring.draw(sand)
 
 
 		pygame.display.flip()
