@@ -4,6 +4,16 @@ from base import *
 
 BLOCKSIZE = 50
 
+class Tile:
+	height = 0
+	def __init__(self):
+		self.contents = []
+
+	def add_contents(self, content):
+		self.contents.append(content)
+		self.height += content.height
+
+
 class Structure(EventedSprite):
 	def __init__(self):
 		EventedSprite.__init__(self)
@@ -66,21 +76,30 @@ tower_mask = {
 	'bottom': 2,
 	'topright': 3,
 	'bottomright': 4,
-	'bottomleft': 5,
-	'topleft': 6,
+	'bottomleft': 6,
+	'topleft': 5,
 	'right': 7,
-	'left': 8
+	'left': 8,
+	'bottomrightleft': 9,
+	'toprightleft': 10,
+	'bottomtopright': 11,
+	'bottomtopleft': 12,
+	'bottomtoprightleft': 13,
+	'bottomtop': 14,
+	'rightleft': 15
 }
 
 class TowerSegment(Structure):
 	def __init__(self):
 		Structure.__init__(self)
+		self.height = 10
 		self.states = load_sliced_sprites(self, 50, 50, 'tower_short.png')
 		self.image = self.states[0][0]
 		self.rect = pygame.Rect((0, 0, BLOCKSIZE, BLOCKSIZE))
 		self.time_to_build = 300
 
 	def update(self, events):
+		mask_hash = ['', '', '', '']
 		mask_item = ''
 		for structure in self.world.structures:
 			# check tile_position to ensure get adjacents
@@ -92,14 +111,15 @@ class TowerSegment(Structure):
 			struct_x_rel = structure.tile_position[0] - self.tile_position[0]
 			if struct_x and fabs(struct_y_rel) == 1:
 				if struct_y_rel > 0:
-					mask_item += 'bottom'
+					mask_hash[0] = 'bottom'
 				else:
-					mask_item += 'top'
+					mask_hash[1] = 'top'
 			if struct_y and fabs(struct_x_rel) == 1:
 				if struct_x_rel > 0:
-					mask_item += 'right'
+					mask_hash[2] = 'right'
 				else:
-					mask_item += 'left'
+					mask_hash[3] = 'left'
+		mask_item = ''.join(mask_hash)
 		if mask_item == '':
 			mask_item = 'single'
 		print mask_item
