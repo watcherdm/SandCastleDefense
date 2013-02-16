@@ -247,7 +247,7 @@ class FireTowerButton(StructureButton):
 		if self.world.has_selected():
 			if not self.world.get_selected().has_project():
 				self.project = Project('firetower')
-				structure = TowerSegment()
+				structure = Mound()
 				structure.ring = StructureRing(structure)
 				self.project.set_structure(structure)
 				StructureButton.on_click(self, event)
@@ -259,7 +259,7 @@ class IceTowerButton(StructureButton):
 
 	def on_click(self, event):
 		self.project = Project('icetower')
-		structure = TowerSegment()
+		structure = Mound()
 		structure.ring = StructureRing(structure)
 		self.project.set_structure(structure)
 		StructureButton.on_click(self, event)
@@ -272,7 +272,7 @@ class LightningTowerButton(StructureButton):
 
 	def on_click(self, event):
 		self.project = Project('lightningtower')
-		structure = TowerSegment()
+		structure = Mound()
 		structure.ring = StructureRing(structure)
 		self.project.set_structure(structure)
 		StructureButton.on_click(self, event)
@@ -286,7 +286,7 @@ class TrenchButton(StructureButton):
 
 	def on_click(self, event):
 		self.project = Project('trench')
-		self.project.set_structure(TrenchSegment())
+		self.project.set_structure(Pit())
 		StructureButton.on_click(self, event)
 		if self.world.has_selected():
 			self.world.get_selected().set_project(self.project)

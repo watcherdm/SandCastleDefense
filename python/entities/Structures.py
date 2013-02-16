@@ -58,6 +58,32 @@ class Structure(EventedSprite):
 			self.world.structures.remove(self)
 		if self.ring != None:
 			self.ring.update(events)
+		mask_hash = ['', '', '', '']
+		mask_item = ''
+		for structure in self.world.structures:
+			# check tile_position to ensure get adjacents
+			if structure == self or not isinstance(structure, self.__class__):
+				continue
+			if not structure.tile_position:
+				continue
+			struct_x = structure.tile_position[0] == self.tile_position[0]
+			struct_y = structure.tile_position[1] == self.tile_position[1]
+			struct_y_rel = structure.tile_position[1] - self.tile_position[1]
+			struct_x_rel = structure.tile_position[0] - self.tile_position[0]
+			if struct_x and fabs(struct_y_rel) == 1:
+				if struct_y_rel > 0:
+					mask_hash[0] = 'bottom'
+				else:
+					mask_hash[1] = 'top'
+			if struct_y and fabs(struct_x_rel) == 1:
+				if struct_x_rel > 0:
+					mask_hash[2] = 'right'
+				else:
+					mask_hash[3] = 'left'
+		mask_item = ''.join(mask_hash)
+		if mask_item == '':
+			mask_item = 'single'
+		self.image = self.states[self.map_set][tower_mask[mask_item]]
 #TODO: Redo wall segments structure
 
 tower_mask = {
@@ -79,7 +105,7 @@ tower_mask = {
 	'rightleft': 15
 }
 
-class TrenchSegment(Structure):
+class Pit(Structure):
 	def __init__(self):
 		Structure.__init__(self)
 		self.height = 10
@@ -88,33 +114,8 @@ class TrenchSegment(Structure):
 		self.image = self.states[1][0]
 		self.rect = pygame.Rect((0, 0, BLOCKSIZE, BLOCKSIZE))
 		self.time_to_build = 300		
-	def update(self, events):
-		mask_hash = ['', '', '', '']
-		mask_item = ''
-		for structure in self.world.structures:
-			# check tile_position to ensure get adjacents
-			if structure == self:
-				continue
-			struct_x = structure.tile_position[0] == self.tile_position[0]
-			struct_y = structure.tile_position[1] == self.tile_position[1]
-			struct_y_rel = structure.tile_position[1] - self.tile_position[1]
-			struct_x_rel = structure.tile_position[0] - self.tile_position[0]
-			if struct_x and fabs(struct_y_rel) == 1:
-				if struct_y_rel > 0:
-					mask_hash[0] = 'bottom'
-				else:
-					mask_hash[1] = 'top'
-			if struct_y and fabs(struct_x_rel) == 1:
-				if struct_x_rel > 0:
-					mask_hash[2] = 'right'
-				else:
-					mask_hash[3] = 'left'
-		mask_item = ''.join(mask_hash)
-		if mask_item == '':
-			mask_item = 'single'
-		self.image = self.states[self.map_set][tower_mask[mask_item]]
 
-class TowerSegment(Structure):
+class Mound(Structure):
 	def __init__(self):
 		Structure.__init__(self)
 		self.height = 10
@@ -124,28 +125,3 @@ class TowerSegment(Structure):
 		self.rect = pygame.Rect((0, 0, BLOCKSIZE, BLOCKSIZE))
 		self.time_to_build = 300
 
-	def update(self, events):
-		mask_hash = ['', '', '', '']
-		mask_item = ''
-		for structure in self.world.structures:
-			# check tile_position to ensure get adjacents
-			if structure == self:
-				continue
-			struct_x = structure.tile_position[0] == self.tile_position[0]
-			struct_y = structure.tile_position[1] == self.tile_position[1]
-			struct_y_rel = structure.tile_position[1] - self.tile_position[1]
-			struct_x_rel = structure.tile_position[0] - self.tile_position[0]
-			if struct_x and fabs(struct_y_rel) == 1:
-				if struct_y_rel > 0:
-					mask_hash[0] = 'bottom'
-				else:
-					mask_hash[1] = 'top'
-			if struct_y and fabs(struct_x_rel) == 1:
-				if struct_x_rel > 0:
-					mask_hash[2] = 'right'
-				else:
-					mask_hash[3] = 'left'
-		mask_item = ''.join(mask_hash)
-		if mask_item == '':
-			mask_item = 'single'
-		self.image = self.states[self.map_set][tower_mask[mask_item]]
