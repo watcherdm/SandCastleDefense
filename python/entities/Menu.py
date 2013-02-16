@@ -285,8 +285,8 @@ class TrenchButton(StructureButton):
 		StructureButton.__init__(self, '')
 
 	def on_click(self, event):
-		self.project = Project('wall')
-		self.project.set_structure(WallSegment())
+		self.project = Project('trench')
+		self.project.set_structure(TrenchSegment())
 		StructureButton.on_click(self, event)
 		if self.world.has_selected():
 			self.world.get_selected().set_project(self.project)

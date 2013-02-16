@@ -56,7 +56,3 @@ def get_line(tstop = 1, points = 1):
     dt = 0.1
     a = solver0(I, f, c, L, points, dt, tstop)
     return a
-  
-if __name__ == '__main__':
-    print get_point(10, 10)
-    print get_line(10, 10)

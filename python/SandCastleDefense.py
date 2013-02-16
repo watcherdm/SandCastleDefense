@@ -7,7 +7,7 @@ from entities.Structures import *
 from entities.Menu import *
 from engines.wave import *
 
-version = '0.0.0'
+version = '0.0.1'
 SCREENHEIGHT = 600
 SCREENWIDTH = 1000
 SCREENSIZE = (SCREENWIDTH, SCREENHEIGHT)
@@ -126,38 +126,6 @@ def build_ocean(wave_point, tide_level=.5):
 
 def build_wet_sand():
 	return False
-
-def build_castle(group):
-	top = 0
-	left = 200
-	right = 0
-	for i in range(0, 10):
-		if i == 0 or i == 9:
-			wall = TowerSegment()
-		else:
-			wall = WallSegment()
-		wall.rect.topleft = (left, top)
-		left += wall.rect.width
-		group.add(wall)
-	right = left - 50
-	left = 200
-	top += 50
-	for i in range(0, 5):
-		lwall = WallSegment(1)
-		rwall = WallSegment(1)
-		lwall.rect.topleft = (left, top)
-		rwall.rect.topleft = (right, top)
-		top += 50
-		group.add(lwall, rwall)
-	for i in range(0, 10):
-		if i == 0 or i == 9:
-			wall = TowerSegment()
-		else:
-			wall = WallSegment()
-		wall.rect.topleft = (left, top)
-		left += wall.rect.width
-		group.add(wall)
-	return group
 
 if __name__ == '__main__':
 	main()

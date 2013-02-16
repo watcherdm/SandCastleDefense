@@ -58,17 +58,7 @@ class Structure(EventedSprite):
 			self.world.structures.remove(self)
 		if self.ring != None:
 			self.ring.update(events)
-		
-class WallSegment(Structure):
-	def __init__(self, direction = 0):
-		Structure.__init__(self)
-		self.direction = direction
-		img = 'wall_segment_0.png'
-		if self.direction == 1:
-			img = 'wall_segment_1.png'
-		self.image, self.rect = load_image(img, -1)
-		self.time_to_build = 150
-
+#TODO: Redo wall segments structure
 
 tower_mask = {
 	'single': 0,
@@ -89,10 +79,46 @@ tower_mask = {
 	'rightleft': 15
 }
 
+class TrenchSegment(Structure):
+	def __init__(self):
+		Structure.__init__(self)
+		self.height = 10
+		self.map_set = 1
+		self.states = load_sliced_sprites(self, 50, 50, 'tower_short.png')
+		self.image = self.states[1][0]
+		self.rect = pygame.Rect((0, 0, BLOCKSIZE, BLOCKSIZE))
+		self.time_to_build = 300		
+	def update(self, events):
+		mask_hash = ['', '', '', '']
+		mask_item = ''
+		for structure in self.world.structures:
+			# check tile_position to ensure get adjacents
+			if structure == self:
+				continue
+			struct_x = structure.tile_position[0] == self.tile_position[0]
+			struct_y = structure.tile_position[1] == self.tile_position[1]
+			struct_y_rel = structure.tile_position[1] - self.tile_position[1]
+			struct_x_rel = structure.tile_position[0] - self.tile_position[0]
+			if struct_x and fabs(struct_y_rel) == 1:
+				if struct_y_rel > 0:
+					mask_hash[0] = 'bottom'
+				else:
+					mask_hash[1] = 'top'
+			if struct_y and fabs(struct_x_rel) == 1:
+				if struct_x_rel > 0:
+					mask_hash[2] = 'right'
+				else:
+					mask_hash[3] = 'left'
+		mask_item = ''.join(mask_hash)
+		if mask_item == '':
+			mask_item = 'single'
+		self.image = self.states[self.map_set][tower_mask[mask_item]]
+
 class TowerSegment(Structure):
 	def __init__(self):
 		Structure.__init__(self)
 		self.height = 10
+		self.map_set = 0
 		self.states = load_sliced_sprites(self, 50, 50, 'tower_short.png')
 		self.image = self.states[0][0]
 		self.rect = pygame.Rect((0, 0, BLOCKSIZE, BLOCKSIZE))
@@ -122,5 +148,4 @@ class TowerSegment(Structure):
 		mask_item = ''.join(mask_hash)
 		if mask_item == '':
 			mask_item = 'single'
-		print mask_item
-		self.image = self.states[0][tower_mask[mask_item]]
+		self.image = self.states[self.map_set][tower_mask[mask_item]]
