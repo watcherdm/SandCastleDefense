@@ -52,9 +52,7 @@ class Structure(EventedSprite):
 		if self.built and not self.rendered:
 			self.rendered = True
 			self.world.structures.add(self)
-		if self.health > 0:
-			self.health -= 0.1
-		else:
+		elif self.health <= 0:
 			self.world.structures.remove(self)
 		if self.ring != None:
 			self.ring.update(events)

@@ -111,7 +111,6 @@ def main():
 		menuring.draw(sand)
 		healthring.draw(sand)
 
-
 		pygame.display.flip()
 		clock.tick(60)
 		i+= 1

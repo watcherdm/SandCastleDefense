@@ -129,7 +129,6 @@ class StructureRing(Ring):
 	def draw(self, surf):
 		if self.target == None or self.rect == None:
 			return
-		print self.get_angle()
 		pygame.draw.circle(surf, pygame.Color('black'), self.center, self.radius, 4)
 		pygame.draw.arc(surf, LIFECOLOR, self.rect, radians(270), radians(self.get_angle() - 270), 4)
 
