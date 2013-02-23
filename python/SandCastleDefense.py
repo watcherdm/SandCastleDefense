@@ -20,16 +20,16 @@ WAVEPRECISION = 100
 def main():
 	pygame.init()
 	world = World(SCREENSIZE)
+
+	tiles = pygame.sprite.OrderedUpdates();
+	
 	pygame.mixer.music.load('sounds/oceanwave.wav')
 	pygame.mixer.music.play(100)
 	pygame.display.set_caption('Sand Castle Defense ' + version)
 	current_tide_level = TIDELEVELS[0]
 
 	sand = pygame.display.set_mode(SCREENSIZE)
-
-
-	speed = [2, 2]
-
+	
 	jenai = Jenai()
 
 	# TODO: get player positions from map
@@ -48,7 +48,7 @@ def main():
 
 	world.structures = structures
 
-	menuitems = FireTowerButton(), IceTowerButton(), LightningTowerButton(), TrenchButton(), TrenchButton()
+	menuitems = FireTowerButton(), IceTowerButton(), LightningTowerButton(), PitButton(), MoundButton()
 
 	hl_block = HighlightBlock()
 

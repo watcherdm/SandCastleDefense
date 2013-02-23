@@ -130,7 +130,7 @@ class StructureRing(Ring):
 		if self.target == None or self.rect == None:
 			return
 		pygame.draw.circle(surf, pygame.Color('black'), self.center, self.radius, 4)
-		pygame.draw.arc(surf, LIFECOLOR, self.rect, radians(270), radians(self.get_angle() - 270), 4)
+		pygame.draw.arc(surf, LIFECOLOR, self.rect, radians(270), radians(self.get_angle()), 4)
 
 	def update(self, events):
 		if self.target == None:
@@ -246,8 +246,7 @@ class FireTowerButton(StructureButton):
 		if self.world.has_selected():
 			if not self.world.get_selected().has_project():
 				self.project = Project('firetower')
-				structure = Mound()
-				structure.ring = StructureRing(structure)
+				structure = ArcherTower()
 				self.project.set_structure(structure)
 				StructureButton.on_click(self, event)
 				self.world.get_selected().set_project(self.project)
@@ -258,8 +257,7 @@ class IceTowerButton(StructureButton):
 
 	def on_click(self, event):
 		self.project = Project('icetower')
-		structure = Mound()
-		structure.ring = StructureRing(structure)
+		structure = WizardTower()
 		self.project.set_structure(structure)
 		StructureButton.on_click(self, event)
 		if self.world.has_selected():
@@ -271,14 +269,13 @@ class LightningTowerButton(StructureButton):
 
 	def on_click(self, event):
 		self.project = Project('lightningtower')
-		structure = Mound()
-		structure.ring = StructureRing(structure)
+		structure = Stairs()
 		self.project.set_structure(structure)
 		StructureButton.on_click(self, event)
 		if self.world.has_selected():
 			self.world.get_selected().set_project(self.project)
 
-class TrenchButton(StructureButton):
+class PitButton(StructureButton):
 
 	def __init__(self):
 		StructureButton.__init__(self, '')
@@ -286,6 +283,18 @@ class TrenchButton(StructureButton):
 	def on_click(self, event):
 		self.project = Project('trench')
 		self.project.set_structure(Pit())
+		StructureButton.on_click(self, event)
+		if self.world.has_selected():
+			self.world.get_selected().set_project(self.project)
+
+class MoundButton(StructureButton):
+
+	def __init__(self):
+		StructureButton.__init__(self, '')
+
+	def on_click(self, event):
+		self.project = Project('trench')
+		self.project.set_structure(Mound())
 		StructureButton.on_click(self, event)
 		if self.world.has_selected():
 			self.world.get_selected().set_project(self.project)

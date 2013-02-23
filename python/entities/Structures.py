@@ -4,9 +4,14 @@ from base import *
 
 BLOCKSIZE = 50
 
-class Tile:
+class Tile(EventedSprite):
 	height = 0
-	def __init__(self):
+	x = 0
+	y = 0
+	def __init__(self, x, y):
+		self.x = x;
+		self.y = y;
+		self.rect = pygame.Rect((x, y, BLOCKSIZE, BLOCKSIZE));
 		self.contents = []
 
 	def add_contents(self, content):
@@ -56,6 +61,12 @@ class Structure(EventedSprite):
 			self.world.structures.remove(self)
 		if self.ring != None:
 			self.ring.update(events)
+
+
+
+class JoiningStructure(Structure):
+	def update(self, events):
+		Structure.update(self, events)
 		mask_hash = ['', '', '', '']
 		mask_item = ''
 		for structure in self.world.structures:
@@ -84,6 +95,7 @@ class Structure(EventedSprite):
 		self.image = self.states[self.map_set][tower_mask[mask_item]]
 #TODO: Redo wall segments structure
 
+
 tower_mask = {
 	'single': 0,
 	'top': 1,
@@ -103,17 +115,17 @@ tower_mask = {
 	'rightleft': 15
 }
 
-class Pit(Structure):
+class Pit(JoiningStructure):
 	def __init__(self):
 		Structure.__init__(self)
 		self.height = 10
 		self.map_set = 1
 		self.states = load_sliced_sprites(self, 50, 50, 'tower_short.png')
-		self.image = self.states[1][0]
+		self.image = self.states[self.map_set][0]
 		self.rect = pygame.Rect((0, 0, BLOCKSIZE, BLOCKSIZE))
 		self.time_to_build = 300		
 
-class Mound(Structure):
+class Mound(JoiningStructure):
 	def __init__(self):
 		Structure.__init__(self)
 		self.height = 10
@@ -123,3 +135,41 @@ class Mound(Structure):
 		self.rect = pygame.Rect((0, 0, BLOCKSIZE, BLOCKSIZE))
 		self.time_to_build = 300
 
+class ArcherTower(Structure):
+	sprite_file = "archer_tower.png"
+	def __init__(self):
+		Structure.__init__(self)
+		self.height = 40
+		self.map_set = 0
+		self.states = load_sliced_sprites(self, 50, 50, self.sprite_file)
+		self.image = self.states[0][0]
+		self.rect = pygame.Rect((0,0, BLOCKSIZE, BLOCKSIZE))
+		self.time_to_build = 300
+		self.rate_of_fire = 10
+		self.attack_power = 10
+
+class WizardTower(Structure):
+	sprite_file = "mage_tower.png"
+	def __init__(self):
+		Structure.__init__(self)
+		self.height = 40
+		self.map_set = 0
+		self.states = load_sliced_sprites(self, 50, 50, self.sprite_file)
+		self.image = self.states[0][0]
+		self.rect = pygame.Rect((0,0, BLOCKSIZE, BLOCKSIZE))
+		self.time_to_build = 300
+		self.rate_of_fire = 10
+		self.attack_power = 10
+
+class Stairs(Structure):
+	sprite_file = "stairs_left.png"
+	def __init__(self):
+		Structure.__init__(self)
+		self.height = 40
+		self.map_set = 0
+		self.states = load_sliced_sprites(self, 50, 50, self.sprite_file)
+		self.image = self.states[0][0]
+		self.rect = pygame.Rect((0,0, BLOCKSIZE, BLOCKSIZE))
+		self.time_to_build = 300
+		self.rate_of_fire = 10
+		self.attack_power = 10

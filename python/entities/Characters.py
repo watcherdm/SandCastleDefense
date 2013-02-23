@@ -68,6 +68,7 @@ class SelectableCharacter(Character):
         self.building = False
         self.stepSize = 1
         self.selected = False
+        self.move_speed = 1
         self.build_speed = 1
 
     def _walk(self):
@@ -88,7 +89,7 @@ class SelectableCharacter(Character):
             if self.project != None:
                 self.building = True
 
-        movePosition = fromLeft, fromTop
+        movePosition = fromLeft * self.move_speed, fromTop * self.move_speed
 
         self.direction = fromLeft
 
@@ -132,6 +133,8 @@ class Jenai(SelectableCharacter):
         self.health = 200
         self.max_health = 200
         self.build_speed = 1.25
+        self.move_speed = 2
+        self.ani_speed_init = 30
 
 class Steve(SelectableCharacter):
     def __init__(self):
@@ -139,3 +142,5 @@ class Steve(SelectableCharacter):
         self.health = 200
         self.max_health = 200
         self.build_speed = .75
+        self.move_speed = 2.5
+        self.ani_speed_init = 20
