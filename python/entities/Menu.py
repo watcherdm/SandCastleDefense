@@ -124,6 +124,7 @@ class HealthRing(Ring):
 		Ring.update(self, events)
 		self.rect = self.rect.inflate(20, 20)
 		self.radius = self.rect.width / 2
+	
 
 class StructureRing(Ring):
 	def draw(self, surf):
@@ -269,7 +270,7 @@ class LightningTowerButton(StructureButton):
 
 	def on_click(self, event):
 		self.project = Project('lightningtower')
-		structure = Stairs()
+		structure = BomberTower()
 		self.project.set_structure(structure)
 		StructureButton.on_click(self, event)
 		if self.world.has_selected():

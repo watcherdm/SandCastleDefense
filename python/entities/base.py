@@ -1,8 +1,8 @@
 import pygame, os, sys
 
-class EventedSprite(pygame.sprite.Sprite):
+class EventedSprite(pygame.sprite.DirtySprite):
   def __init__(self):
-    pygame.sprite.Sprite.__init__(self)
+    pygame.sprite.DirtySprite.__init__(self)
     self.selected = False
     self.mouse = {
       'down': False,
@@ -160,22 +160,22 @@ def load_image(name, colorkey=None):
   return image, image.get_rect()
 
 def load_sliced_sprites(self, w, h, filename):
-    '''
-    Specs :
-      Master can be any height.
-      Sprites frames width must be the same width
-      Master width must be len(frames)*frame.width
-    Assuming you ressources directory is named "ressources"
-    '''
-    images = []
-    master_image = pygame.image.load(os.path.join('.', filename)).convert_alpha()
+  '''
+  Specs :
+    Master can be any height.
+    Sprites frames width must be the same width
+    Master width must be len(frames)*frame.width
+  Assuming you ressources directory is named "ressources"
+  '''
+  images = []
+  master_image = pygame.image.load(os.path.join('.', filename)).convert_alpha()
 
-    master_width, master_height = master_image.get_size()
-    for j in xrange(int(master_height/h)):
-      t = []
-      images.append(t)
-      for i in xrange(int(master_width/w)):
-        position = (i*w,j*h,w,h)
-        surf = master_image.subsurface(position)
-        images[j].append(surf)
-    return images
+  master_width, master_height = master_image.get_size()
+  for j in xrange(int(master_height/h)):
+    t = []
+    images.append(t)
+    for i in xrange(int(master_width/w)):
+      position = (i*w,j*h,w,h)
+      surf = master_image.subsurface(position)
+      images[j].append(surf)
+  return images

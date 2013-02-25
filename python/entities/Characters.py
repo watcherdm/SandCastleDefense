@@ -47,6 +47,8 @@ class Character(EventedSprite):
             if self.health < self.max_health:
                 self.health += 0.1
             self.image = self.ani[0][self.ani_pos]
+        for tile in self.world.map.tiles.get_sprites_at(self.rect.topleft):
+            tile.dirty = 1
         self.face_direction()
 
     def finish_project(self):

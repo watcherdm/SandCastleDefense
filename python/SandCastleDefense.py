@@ -6,6 +6,7 @@ from entities.Characters import *
 from entities.Structures import *
 from entities.Menu import *
 from engines.wave import *
+from entities.map import *
 
 version = '0.0.1'
 SCREENHEIGHT = 600
@@ -20,15 +21,15 @@ WAVEPRECISION = 100
 def main():
 	pygame.init()
 	world = World(SCREENSIZE)
+	pygame.display.set_caption('Sand Castle Defense ' + version)
+	sand = pygame.display.set_mode(SCREENSIZE)
 
-	tiles = pygame.sprite.OrderedUpdates();
-	
+	sandmap = Map(world, 'maps/allsand.map')
+
 	pygame.mixer.music.load('sounds/oceanwave.wav')
 	pygame.mixer.music.play(100)
-	pygame.display.set_caption('Sand Castle Defense ' + version)
 	current_tide_level = TIDELEVELS[0]
 
-	sand = pygame.display.set_mode(SCREENSIZE)
 	
 	jenai = Jenai()
 
@@ -42,11 +43,8 @@ def main():
 	steve.rect.left = 300
 
 	selectable = pygame.sprite.OrderedUpdates()
-	structures = pygame.sprite.OrderedUpdates()
 	selectable.add(jenai, steve)
 	oldocean = None
-
-	world.structures = structures
 
 	menuitems = FireTowerButton(), IceTowerButton(), LightningTowerButton(), PitButton(), MoundButton()
 
@@ -65,6 +63,7 @@ def main():
 	healthring = HealthRing()
 
 	while True:
+		world.map.dirtyTiles()
 		events = pygame.event.get()
 		if i % 100 == 0:
 			if random.randint(0,100) % 2 == 0:
@@ -77,7 +76,6 @@ def main():
 			wave = get_line(wave_count + 1, WAVEPRECISION)
 		
 		hl_block.update(events)
-		sand.fill(BEACHCOLOR)
 
 
 		ocean = build_ocean(wave[wave_count], current_tide_level)
@@ -99,12 +97,9 @@ def main():
 		healthring.update(events)
 		for m in menuitems:
 			m.update(events)
-		structures.update(events)
+		world.map.tiles.update(events)
 		selectable.update(events)
-		structures.draw(sand)
-		for structure in structures:
-			if structure.ring != None:
-				structure.ring.draw(sand)
+		world.map.tiles.draw(sand)
 		selectable.draw(sand)
 		world.update(events)
 		sand.fill(OCEANCOLOR, ocean)

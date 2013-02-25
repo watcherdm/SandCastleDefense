@@ -3,36 +3,29 @@ from math import fabs
 from base import *
 
 BLOCKSIZE = 50
+BEACHCOLOR = pygame.Color(255, 222, 73, 1)
 
-class Tile(EventedSprite):
-	height = 0
+class Tile(pygame.sprite.DirtySprite):
+	layer = 0
 	x = 0
 	y = 0
-	def __init__(self, x, y):
+	def __init__(self, y, x):
+		pygame.sprite.DirtySprite.__init__(self)
 		self.x = x;
 		self.y = y;
-		self.rect = pygame.Rect((x, y, BLOCKSIZE, BLOCKSIZE));
-		self.contents = []
-
-	def add_contents(self, content):
-		self.contents.append(content)
-		self.height += content.height
-
+		self.image = pygame.Surface((BLOCKSIZE, BLOCKSIZE))
+		self.rect = pygame.Rect((x * BLOCKSIZE, y * BLOCKSIZE, BLOCKSIZE, BLOCKSIZE));
+		self.image.fill(BEACHCOLOR)
 
 class Structure(EventedSprite):
 	def __init__(self):
 		EventedSprite.__init__(self)
-		self.tile_position = {
-			'x': 0, 
-			'y': 0
-		}
+		self.tile = None
 		self.ring = None
 		self.health = 0
 		self.max_health = 0 # this should be influenced by builder level
 		self.height = 0 # this should be influenced by structure type
 		self.habitation = 0 # this should be influenced by structure material?
-		self.power = 0 # attack power
-		self.range = 0 # attack range
 		self.age = 0
 		self.built = False
 		self.world = World(pygame.display.get_surface().get_size())
@@ -45,23 +38,20 @@ class Structure(EventedSprite):
 			builder.time_building += builder.build_speed
 		else:		
 			if self.rect != None and position != None:
-				self.tile_position[0] = position[0] / BLOCKSIZE
-				self.tile_position[1] = position[1] / BLOCKSIZE
 				self.rect.topleft = position
+			# determine vertical offset by height
 			self.health = self.time_to_build
 			self.max_health = self.time_to_build
-			self.world.structures.add(self)
+			self.world.map.addStructure(self)
+			self.adjustToLayer()
 			builder.finish_project()
 
-	def update(self, events):
-		if self.built and not self.rendered:
-			self.rendered = True
-			self.world.structures.add(self)
-		elif self.health <= 0:
-			self.world.structures.remove(self)
-		if self.ring != None:
-			self.ring.update(events)
+	def adjustToLayer(self):
+		self.rect.top = self.rect.top - ((self.layer - 1) * 6)
 
+	def update(self, events):
+		EventedSprite.update(self, events)
+		self.image.blit(text, (0,0))
 
 
 class JoiningStructure(Structure):
@@ -69,16 +59,19 @@ class JoiningStructure(Structure):
 		Structure.update(self, events)
 		mask_hash = ['', '', '', '']
 		mask_item = ''
-		for structure in self.world.structures:
+		for structure in self.world.map.tiles.sprites():
 			# check tile_position to ensure get adjacents
 			if structure == self or not isinstance(structure, self.__class__):
 				continue
-			if not structure.tile_position:
+			if structure.tile == None:
+				print "No tile associated with structure"
 				continue
-			struct_x = structure.tile_position[0] == self.tile_position[0]
-			struct_y = structure.tile_position[1] == self.tile_position[1]
-			struct_y_rel = structure.tile_position[1] - self.tile_position[1]
-			struct_x_rel = structure.tile_position[0] - self.tile_position[0]
+			if structure.layer != self.layer:
+				continue
+			struct_x = structure.tile.x == self.tile.x
+			struct_y = structure.tile.y == self.tile.y
+			struct_y_rel = structure.tile.y - self.tile.y
+			struct_x_rel = structure.tile.x - self.tile.x
 			if struct_x and fabs(struct_y_rel) == 1:
 				if struct_y_rel > 0:
 					mask_hash[0] = 'bottom'
@@ -123,7 +116,11 @@ class Pit(JoiningStructure):
 		self.states = load_sliced_sprites(self, 50, 50, 'tower_short.png')
 		self.image = self.states[self.map_set][0]
 		self.rect = pygame.Rect((0, 0, BLOCKSIZE, BLOCKSIZE))
-		self.time_to_build = 300		
+		self.time_to_build = 300
+
+	def adjustToLayer(self):
+		self.rect.top = self.rect.top + ((self.layer - 1) * 6)
+
 
 class Mound(JoiningStructure):
 	def __init__(self):
@@ -150,6 +147,19 @@ class ArcherTower(Structure):
 
 class WizardTower(Structure):
 	sprite_file = "mage_tower.png"
+	def __init__(self):
+		Structure.__init__(self)
+		self.height = 40
+		self.map_set = 0
+		self.states = load_sliced_sprites(self, 50, 50, self.sprite_file)
+		self.image = self.states[0][0]
+		self.rect = pygame.Rect((0,0, BLOCKSIZE, BLOCKSIZE))
+		self.time_to_build = 300
+		self.rate_of_fire = 10
+		self.attack_power = 10
+
+class BomberTower(Structure):
+	sprite_file = "bomber_tower.png"
 	def __init__(self):
 		Structure.__init__(self)
 		self.height = 40
