@@ -124,7 +124,7 @@ class HealthRing(Ring):
 		Ring.update(self, events)
 		self.rect = self.rect.inflate(20, 20)
 		self.radius = self.rect.width / 2
-	
+
 
 class StructureRing(Ring):
 	def draw(self, surf):
@@ -150,11 +150,26 @@ class MenuRing(Ring):
 		return self.target != None
 
 	def set_target(self, target):
-		self.target = target;
+		print "Adding target"
+		self.empty()
+		self.target = target
+		self.add_target_buttons(target)
+
+	def update_target_buttons(self):
+		self.empty()
+		self.add_target_buttons(self, self.target)
+
+	def add_target_buttons(self, target):
+		self.add_button(PitButton())
+		if target.sand > 0:
+			self.add_button(MoundButton())
 
 	def update(self, events):
-		if self.world.has_selected():
-			self.target = self.world.get_selected()
+		selected = self.world.get_selected()
+		if selected != self.target:
+			self.set_target(selected)
+		elif selected:
+			self.update_buttons()
 		Ring.update(self, events)
 		if self.target == None:
 			return
@@ -185,6 +200,12 @@ class MenuRing(Ring):
 		button.ring = self
 		self.buttons.append(button)
 
+	def get_buttons(self):
+		return self.buttons
+
+	def empty(self):
+		self.buttons = []
+
 class StructureButton(Button):
 	image_base = 'shovel_'
 	extension = '.png'
@@ -204,6 +225,9 @@ class StructureButton(Button):
 		self.enable()
 
 	def on_mousemove(self, event):
+		self.enable()
+
+	def on_mouseover(self):
 		self.enable()
 
 	def on_mouseout(self, event):
@@ -277,24 +301,33 @@ class LightningTowerButton(StructureButton):
 			self.world.get_selected().set_project(self.project)
 
 class PitButton(StructureButton):
+	image_base = 'pit_'
 
 	def __init__(self):
 		StructureButton.__init__(self, '')
 
+	def on_mousedown(self, event):
+		print "Mouse down"
+
+	def on_mouseup(self, event):
+		print "Mouse up"
+
 	def on_click(self, event):
-		self.project = Project('trench')
+		print "Starting Pit Project"
+		self.project = Project('pit')
 		self.project.set_structure(Pit())
 		StructureButton.on_click(self, event)
 		if self.world.has_selected():
 			self.world.get_selected().set_project(self.project)
 
 class MoundButton(StructureButton):
+	image_base = 'mound_'
 
 	def __init__(self):
 		StructureButton.__init__(self, '')
 
 	def on_click(self, event):
-		self.project = Project('trench')
+		self.project = Project('mound')
 		self.project.set_structure(Mound())
 		StructureButton.on_click(self, event)
 		if self.world.has_selected():

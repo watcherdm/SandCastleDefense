@@ -31,6 +31,9 @@ class Structure(EventedSprite):
 		self.world = World(pygame.display.get_surface().get_size())
 		self.rendered = False
 
+	def on_buildfinish(self, builder):
+		print builder.name + " finished building " + self.__class__.name
+
 	def build(self, builder, position):
 		if self.time_to_build >= builder.time_building:
 			self.health = builder.time_building
@@ -45,13 +48,13 @@ class Structure(EventedSprite):
 			self.world.map.addStructure(self)
 			self.adjustToLayer()
 			builder.finish_project()
+			self.on_buildfinish(builder)
 
 	def adjustToLayer(self):
 		self.rect.top = self.rect.top - ((self.layer - 1) * 6)
 
 	def update(self, events):
 		EventedSprite.update(self, events)
-		self.image.blit(text, (0,0))
 
 
 class JoiningStructure(Structure):
@@ -122,6 +125,10 @@ class Pit(JoiningStructure):
 		self.rect.top = self.rect.top + ((self.layer - 1) * 6)
 
 
+	def on_buildfinish(self, builder):
+		builder.sand += 1
+		print "Finished building pit +1 sand"
+
 class Mound(JoiningStructure):
 	def __init__(self):
 		Structure.__init__(self)
@@ -131,6 +138,10 @@ class Mound(JoiningStructure):
 		self.image = self.states[0][0]
 		self.rect = pygame.Rect((0, 0, BLOCKSIZE, BLOCKSIZE))
 		self.time_to_build = 300
+
+	def on_buildfinish(self, builder):
+		builder.sand -= 1
+
 
 class ArcherTower(Structure):
 	sprite_file = "archer_tower.png"

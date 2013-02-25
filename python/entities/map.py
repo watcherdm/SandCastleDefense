@@ -1,8 +1,10 @@
 import pygame, sys
 from base import World
 from Structures import Tile
+import random
 # map engine
 BEACHCOLOR = pygame.Color(255, 222, 73, 1)
+BLOCKSIZE = 50
 
 class Map:
 	def __init__(self, world, map, tiles = None):
@@ -39,3 +41,8 @@ class Map:
 		self.tiles.add(structure, layer = layer)
 		structure.tile = tile
 		structure.layer = layer
+
+	def getRandomTile(self):
+		row = random.choice(self.map)
+		tile = random.choice(row)
+		return tile.rect.topleft

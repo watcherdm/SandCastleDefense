@@ -46,7 +46,13 @@ def main():
 	selectable.add(jenai, steve)
 	oldocean = None
 
-	menuitems = FireTowerButton(), IceTowerButton(), LightningTowerButton(), PitButton(), MoundButton()
+	menuitems = {
+		"fire": FireTowerButton(), 
+		"ice": IceTowerButton(), 
+		"lit": LightningTowerButton(), 
+		"pit": PitButton(), 
+		"mound": MoundButton()
+	}
 
 	hl_block = HighlightBlock()
 
@@ -57,11 +63,9 @@ def main():
 	wave_count = 0
 	ocean = None
 	menuring = MenuRing()
-	for m in menuitems:
-		menuring.add_button(m)
 
 	healthring = HealthRing()
-
+	critters = pygame.sprite.OrderedUpdates()
 	while True:
 		world.map.dirtyTiles()
 		events = pygame.event.get()
@@ -70,6 +74,16 @@ def main():
 				current_tide_level += .01
 			else:
 				current_tide_level -= .01
+
+		if wave_count == len(wave) / 2:
+			if len(critters.sprites()) == 0:
+				critter = Crab(world.map.getRandomTile())
+				critters.add(critter)
+			for critter in critters:
+				if critter.moving == False:
+					critter.set_destination(world.map.getRandomTile())
+			# place some critters
+			
 
 		if wave_count >= len(wave):
 			wave_count = 0
@@ -95,12 +109,14 @@ def main():
 
 		menuring.update(events)
 		healthring.update(events)
-		for m in menuitems:
+		for m in menuring.get_buttons():
 			m.update(events)
 		world.map.tiles.update(events)
 		selectable.update(events)
+		critters.update(events)
 		world.map.tiles.draw(sand)
 		selectable.draw(sand)
+		critters.draw(sand)
 		world.update(events)
 		sand.fill(OCEANCOLOR, ocean)
 		menuring.draw(sand)

@@ -16,17 +16,16 @@ class EventedSprite(pygame.sprite.DirtySprite):
     pos = pygame.mouse.get_pos()
     if self.rect.collidepoint(pos):
       self.on_mousemove(event)
-
-  def mouseover(self, event):
-    pos = pygame.mouse.get_pos()
-    if self.rect.collidepoint(pos):
-      if not self.mouse['over']:
-        self.on_mouseover(event)
-      self.mouse['over'] = True
     else:
       if self.mouse['over']:
         self.on_mouseout(event)
       self.mouse['over'] = False
+
+  def mouseover(self):
+    pos = pygame.mouse.get_pos()
+    if self.rect.collidepoint(pos):
+      self.on_mouseover()
+      self.mouse['over'] = True
     
   def click(self, event):
     self.on_click(event)
@@ -38,8 +37,8 @@ class EventedSprite(pygame.sprite.DirtySprite):
 
   def mouseup(self, event):
     if self.mouse['over']:
+      self.on_mouseup(event)
       if self.mouse['down']:
-        self.on_mouseup(event)
         self.click(event)
     self.mouse['down'] = False
 
@@ -48,19 +47,19 @@ class EventedSprite(pygame.sprite.DirtySprite):
       self.on_mousehold(event)
 
   def checkState(self, events = []):
+    self.mouseover()
     for event in events:
       if event.type == pygame.QUIT:
         # probably are you sure you want to quit
         sys.exit()
       if event.type == pygame.MOUSEMOTION:
         self.mousemove(event)
-        self.mouseover(event)
       if event.type == pygame.MOUSEBUTTONDOWN:
         if event.button == 1:
           self.mousedown(event)
       if event.type == pygame.MOUSEBUTTONUP:
         if event.button == 1:
-          self.mouseup(event)        
+          self.mouseup(event)
 
   def on_mousedown(self, event):
     return 0
@@ -68,7 +67,7 @@ class EventedSprite(pygame.sprite.DirtySprite):
     return 0
   def on_mousemove(self, event):
     return 0
-  def on_mouseover(self, event):
+  def on_mouseover(self):
     return 0
   def on_mouseout(self, event):
     return 0
