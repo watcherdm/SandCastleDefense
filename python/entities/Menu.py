@@ -150,7 +150,6 @@ class MenuRing(Ring):
 		return self.target != None
 
 	def set_target(self, target):
-		print "Adding target"
 		self.empty()
 		self.target = target
 		self.add_target_buttons(target)
@@ -163,6 +162,8 @@ class MenuRing(Ring):
 		self.add_button(PitButton())
 		if target.sand > 0:
 			self.add_button(MoundButton())
+		if target.aspect != None:
+			self.add_button(target.aspect.button)
 
 	def update(self, events):
 		selected = self.world.get_selected()

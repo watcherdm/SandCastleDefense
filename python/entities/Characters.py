@@ -4,6 +4,12 @@ from base import *
 
 BLOCKSIZE = 50
 
+class Aspect(pygame.sprite.Sprite):
+    def __init__(self, name = None, button = None):
+        self.name = name
+        self.button = button
+        self.image, self.rect = load_image(self.name + '_hat.png', -1)
+
 class Character(EventedSprite):
     def __init__(self, name = None, position = (0,0)):
         self.direction = 1
@@ -22,6 +28,8 @@ class Character(EventedSprite):
         self.rect.topleft = position
         self.time_building = 0
         self.destinations = []
+        self.aspect = None
+        self.xp = 0
 
     def face_direction(self):
         if self.direction < 0:
@@ -103,6 +111,9 @@ class SelectableCharacter(Character):
         self.world.set_selected(None)
 
 
+    def imagine_aspect(self, aspect):
+        self.aspect = aspect
+
     def has_project(self):
         return self.project != None
 
@@ -124,6 +135,7 @@ class SelectableCharacter(Character):
             Character.set_destination(self, position)
     def finish_project(self):
         self.time_building = 0
+        self.xp += 100
         self.building = False
         self.project.set_structure(None)
         self.set_project(None)

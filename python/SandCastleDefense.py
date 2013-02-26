@@ -54,6 +54,25 @@ def main():
 		"mound": MoundButton()
 	}
 
+	aspects = {
+		"wizard": Aspect("wizard", menuitems['ice']),
+		"knight": Aspect("knight", menuitems['fire']),
+		"pirate": Aspect("pirate", menuitems['lit'])
+	}
+
+	levels = {
+		"steve": {
+			400: "knight",
+			1200: "wizard",
+			4000: "pirate"
+		},
+		"jenai": {
+			400: "knight",
+			1200: "wizard",
+			4000: "pirate"
+		}
+	}
+
 	hl_block = HighlightBlock()
 
 	clock = pygame.time.Clock()
@@ -106,6 +125,11 @@ def main():
 			oosurf.set_alpha(WETSANDCOLOR.a)
 			oosurf.fill(WETSANDCOLOR)
 			sand.blit(oosurf, (oldocean.left, oldocean.top))
+
+		for name in levels:
+			for level in levels[name]:
+				if eval(name).xp > level:
+					eval(name).imagine_aspect(aspects[levels[name][level]])
 
 		menuring.update(events)
 		healthring.update(events)
