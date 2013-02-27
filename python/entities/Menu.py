@@ -160,7 +160,7 @@ class MenuRing(Ring):
 
 	def add_target_buttons(self, target):
 		self.add_button(PitButton())
-		if target.sand > 0:
+		if target.get_sand() > 0:
 			self.add_button(MoundButton())
 		if target.aspect != None:
 			self.add_button(target.aspect.button)

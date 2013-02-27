@@ -29,12 +29,27 @@ class Character(EventedSprite):
         self.time_building = 0
         self.destinations = []
         self.aspect = None
-        self.xp = 0
+        self.aspects = []
+        self.xp = 400
+        self._callbacks = {}
 
     def face_direction(self):
         if self.direction < 0:
             self.image = pygame.transform.flip(self.image, True, False)
 
+    def add_callback(self, name, context, method):
+        if not self._callbacks[name]:
+            self._callbacks[name] = []
+        handler = {
+            "fn": method,
+            "context": context
+        }
+        self._callbacks.append(handler)
+
+    def call_handler(self, name, *args):
+        if self._callbacks.get(name, False):
+            for handler in self._callbacks[name]:
+                handler["method"](handler["context"], *args)
 
     def update(self, events):
         self.ani_speed -= 1
@@ -52,6 +67,11 @@ class Character(EventedSprite):
             if self.health < self.max_health:
                 self.health += 0.1
             self.image = self.ani[0][self.ani_pos]
+        if self.aspect != None:
+            # draw the hat.
+            self.aspect.rect.top = self.rect.top - 30
+            self.aspect.rect.left = self.rect.left
+            self.image.blit(self.aspect.image, self.aspect.rect.topleft)
         self.face_direction()
 
     def _walk(self):
@@ -100,7 +120,21 @@ class SelectableCharacter(Character):
         self.selected = False
         self.move_speed = 1
         self.build_speed = 1
-        self.sand = 0
+        self._sand = 0
+
+    def add_sand(self, grains):
+        self._sand += grains
+        self.sand_changed()
+
+    def spend_sand(self, grains):
+        self._sand -= grains
+        self.sand_changed()
+
+    def get_sand(self):
+        return self._sand
+
+    def sand_changed(self):
+        self.call_handler("sand_changed", self, self._sand)
 
     def select(self):
         self.selected = True

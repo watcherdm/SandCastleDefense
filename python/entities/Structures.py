@@ -32,7 +32,7 @@ class Structure(EventedSprite):
 		self.rendered = False
 
 	def on_buildfinish(self, builder):
-		print builder.name + " finished building " + self.__class__.name
+		print builder.name + " finished building " + self.__class__.__name__
 
 	def build(self, builder, position):
 		if self.time_to_build >= builder.time_building:
@@ -126,7 +126,7 @@ class Pit(JoiningStructure):
 
 
 	def on_buildfinish(self, builder):
-		builder.sand += 1
+		builder.add_sand(self.health)
 		print "Finished building pit +1 sand"
 
 class Mound(JoiningStructure):
@@ -140,8 +140,7 @@ class Mound(JoiningStructure):
 		self.time_to_build = 300
 
 	def on_buildfinish(self, builder):
-		builder.sand -= 1
-
+		builder.spend_sand(self.health)
 
 class ArcherTower(Structure):
 	sprite_file = "archer_tower.png"

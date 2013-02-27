@@ -128,7 +128,7 @@ def main():
 
 		for name in levels:
 			for level in levels[name]:
-				if eval(name).xp > level:
+				if eval(name).xp >= level:
 					eval(name).imagine_aspect(aspects[levels[name][level]])
 
 		menuring.update(events)
