@@ -26,7 +26,7 @@ def main():
 
 	sandmap = Map(world, 'maps/allsand.map')
 
-	pygame.mixer.music.load('sounds/oceanwave.wav')
+	pygame.mixer.music.load('sounds/music.wav')
 	pygame.mixer.music.play(100)
 	current_tide_level = TIDELEVELS[0]
 
