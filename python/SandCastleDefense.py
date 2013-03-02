@@ -82,6 +82,16 @@ def main():
 	wave_count = 0
 	ocean = None
 	menuring = MenuRing()
+	fast = 10
+	med = 5
+	slow = 2
+
+	pygame.FASTFIRE = 25
+	pygame.MEDFIRE = 26
+	pygame.SLOWFIRE = 27
+	pygame.time.set_timer(pygame.FASTFIRE, 1000 / fast)
+	pygame.time.set_timer(pygame.MEDFIRE, 1000 / med)
+	pygame.time.set_timer(pygame.SLOWFIRE, 1000 / slow)
 
 	healthring = HealthRing()
 	critters = pygame.sprite.OrderedUpdates()
@@ -142,6 +152,9 @@ def main():
 		selectable.draw(sand)
 		critters.draw(sand)
 		world.update(events)
+		for sprite in world.map.tiles.sprites():
+			if hasattr(sprite, 'cannon'):
+				sprite.cannon.draw(sand)
 		sand.fill(OCEANCOLOR, ocean)
 		menuring.draw(sand)
 		healthring.draw(sand)

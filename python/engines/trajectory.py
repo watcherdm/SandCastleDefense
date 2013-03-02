@@ -1,10 +1,12 @@
 from math import cos, sin, sqrt, asin, pow, tan, pi
 import pygame, sys
+from itertools import combinations
 gravity = 9.81
-
-def get_distance_traveled(velocity, height, angle):
-	angle = 180 * angle / pi
-	return velocity * cos(angle) / gravity * (velocity * sin(angle) + sqrt(velocity * sin(angle) + 2 * gravity * height))
+view_angle = 30
+black = pygame.Color(0, 0, 0)
+grey = pygame.Color(128,128,128)
+red = pygame.Color(255,0,0)
+white = pygame.Color(255, 255, 255)
 
 def time_of_flight(distance, velocity, angle):
 	angle = 180 * angle / pi
@@ -16,9 +18,13 @@ def to_angle(radians):
 def to_radians(angle):
 	return pi * angle / 180
 
+def get_distance_traveled(velocity, height, angle):
+	radians = to_radians(angle)
+	return velocity * cos(radians) / gravity * (velocity * sin(radians) + sqrt(velocity * sin(radians) + 2 * gravity * height))
+
 def y_velocity(velocity, angle):
 	radians = to_radians(angle)
-	x = (v * cos(radians)) * t
+	x = (v * cos(radians)) * 0.1
 	vy = velocity * sin(radians) - gravity * x / velocity * cos(radians)
 	return vy
 
@@ -28,86 +34,242 @@ def x_velocity(velocity, angle):
 	return velocity * cos(radians)
 	
 def velocity_at_x(x, velocity, angle):
-	return sqrt(pow(x_velocity(velocity, angle), 2) + pow(y_velocity(x, velocity, angle), 2))
+	return sqrt(pow(x_velocity(velocity, angle), 2) + pow(y_velocity(velocity, angle), 2))
 
 def height_at_x(x, orig_height, angle, velocity):
 	radians = to_radians(angle)
 	rtan = tan(radians)
 	rcos = cos(radians)
-	return orig_height + x * rtan - gravity * (x * x) / pow(2 * (velocity * rcos), 2)
+	val = orig_height + (x * rtan) - gravity * (x * x) / pow(2 * (velocity * rcos), 2)
+	return val
 
 def get_trajectory(x, h, a, v):
-	print "generating trajectory for " + str(x) + " " + str(h) + " " + str(a) + " " + str(v)
 	trajectory = []
 	val = 0
-	while val >= 0.0 and val <= 100000:
+	while val >= 0.0 and val <= 1000:
 		val = height_at_x(x, h, a, v)
 		if val > 0:
 			trajectory.append(val)
 		x += 1
 	return trajectory
 
-xOrigin = 0
-yOrigin = 480
+def angle_line(start, angle, distance):
+	radians = to_radians(angle)
+	return start[0] + distance * cos(radians), start[1] + distance * sin(radians)
 
-def xFla(x, y, z):
-	xCart = (x-z)*cos(to_radians(90));
-	xI = xCart+xOrigin;
-	return (xI);
- 
-def yFla(x, y, z):
-	yCart = y+(x+z)*sin(to_radians(30));
-	yI = -yCart+yOrigin;
-	return (yI);
+def angular_trajectory(start, angle, direction, velocity):
+	shadow = []
+	path = []
+	x = start[0]
+	y = start[1]
+	counter = 0
+	t = get_trajectory(0, start[2], angle, velocity)
+	for z in t:
+		x, y = angle_line((x, y), direction, counter)
+		shadow.append((x, y, 0))
+		path.append((x, y, z))
+		if (z > 0):
+			shadow.append((x, y, 0))
+			path.append((x, y, 0))			
+		counter += 1
+	return path, shadow
 
-def to3d(point):
-	return (point[0], yFla(point[0], point[1], point[2]))
+class Cannon:
+	def __init__(self):
+		print "Initializing cannon"
+		self.aof = 45
+		self.rof = 10
+		self.vel = 5.5
+		self.ang = 180
+		self.height = 0
+		self.hits = []
+		self.projectiles = []
+		self.center = [0, 0]
+		self.fireTrigger = pygame.MEDFIRE
+		self.shotRequested = False
+		self.canvas = pygame.Surface(pygame.display.get_surface().get_size())
+		self.canvas.set_colorkey(black)
+		self.projectile_radius = 2
+		self.yOrigin = pygame.display.get_surface().get_rect().height
 
-range_of_projectile = 100
+	def setPosition(self, pos):
+		screen_height = pygame.display.get_surface().get_rect().height
+		left = pos[0]
+		top = screen_height - pos[1]
+		self.center = [left, top]
 
-initPoint = [320, 240, 0]
+	def yFla(self, x, y, z, angle):
+		yCart = y+(z)*sin(to_radians(angle));
+		yI = -yCart + self.yOrigin;
+		return (yI);
+
+	def to3d(self, point, angle):
+		return (int(point[0]), int(self.yFla(point[0], point[1], point[2], angle)))
+
+	def get_3d_point(self):
+		return (self.center[0], self.center[1], self.height)
+
+	def update(self, events):
+		self.canvas = pygame.Surface(pygame.display.get_surface().get_size())
+		self.canvas.set_colorkey(black)
+		for event in events:
+			if event.type == self.fireTrigger:
+				if self.shotRequested:
+					projectile = angular_trajectory(self.get_3d_point(), self.aof, self.ang, self.vel)
+					self.projectiles.append([projectile[0], projectile[1]])
+					self.shotRequested = False	
+		if self.ang < -180:
+			self.ang = 180
+		if self.ang > 180:
+			self.ang = -180
+		if self.aof > 90:
+			self.aof = 0
+		if self.aof < 0:
+			self.aof = 90
+
+		for projectile in self.projectiles:
+			t = projectile[0]
+			s = projectile[1]
+			if len(t) != 0:
+				pos = self.to3d(t[0], view_angle)
+				spos = self.to3d(s[0], view_angle)
+				projectile[0] = t[1:]
+				projectile[1] = s = s[1:]
+				if len(projectile[0]) == 0:
+					self.hits.append(pos)
+				pygame.draw.circle(self.canvas, red, pos, self.projectile_radius)
+				pygame.draw.circle(self.canvas, grey, spos, self.projectile_radius)
+			else:
+				self.projectiles.remove(projectile)
+
+		if len(self.hits) > 20:
+			self.hits = self.hits[1:]
+
+		for hit in self.hits:
+			pygame.draw.circle(self.canvas, grey, hit, 3)
+
+	def draw_debug(self):
+		p = self.to3d(self.get_3d_point(), view_angle)
+		spoint = (self.center[0], self.center[1], 0)
+		pygame.draw.circle(self.canvas, red, p, 4, 2)
+		pygame.draw.circle(self.canvas, grey, self.to3d(spoint, view_angle) , 4, 2)
+
+	def draw(self, surf):
+		self.draw_debug()
+		pygame.display.get_surface().blit(self.canvas, (0,0))
+
+pygame.FASTFIRE = 25
+pygame.MEDFIRE = 26
+pygame.SLOWFIRE = 27
+
 if __name__ == "__main__":
-	box = ((0, 0, 0), (1, 0, 0), (1, 1, 0), (1,0,1), (0,1,1), (0, 0, 1), (0, 1, 0))
-	a = 45
-	v = 40
-	h = 0
-	black = pygame.Color(0, 0, 0)
-	red = pygame.Color(255,0,0)
-	white = pygame.Color(255, 255, 255)
-	d = get_distance_traveled(v, h, a)
-	x = 0
-	r = 2
-	print d
-	print time_of_flight(d, v, a)
+	fast = 10
+	med = 5
+	slow = 2
 	pygame.init()
+	pygame.font.init()
+	f = pygame.font.SysFont('arial', 12)	
 	screen = pygame.display.set_mode((640, 480))
-	canvas = pygame.Surface((640, 480))
-	t = get_trajectory(x, h, a, v)
+	clock = pygame.time.Clock()
+	pygame.time.set_timer(pygame.FASTFIRE, 1000 / fast)
+	pygame.time.set_timer(pygame.MEDFIRE, 1000 / med)
+	pygame.time.set_timer(pygame.SLOWFIRE, 1000 / slow)
+
+	keysHeld = {
+		276: False,
+		275: False,
+		274: False,
+		273: False,
+		122: False, # aof down
+		120: False, # aof up
+		101: False, # elevation down
+		113: False, # elevation up
+		119: False, # position y up
+		115: False, # position y down
+		100: False, # position x up
+		97: False, # position x down
+		32: False,
+		27: False
+	}		
+
+	cannon = Cannon()
+
 	while True:
-		canvas.fill(white)
+
+		distance = get_distance_traveled(cannon.vel, cannon.height, cannon.aof)
+		currentAngle = f.render("direction " + str(cannon.ang), False, black)
+		currentAof = f.render("angle " + str(cannon.aof), False, black)
+		currentVelocity = f.render("velocity " + str(cannon.vel), False, black)
+		currentPoint = f.render("location " + str(cannon.get_3d_point()), False, black)
+		currentRange = f.render("range " + str(distance), False, black)
+		currentFps = f.render("fps " + str(clock.get_fps()), False, black)
+		screen.fill(white)
 		events = pygame.event.get()
 		for event in events:
 			if event.type == pygame.QUIT:
-				# probably are you sure you want to quit
 				sys.exit()
-		if len(t) == 0:
-			x = 0
-			t = get_trajectory(x, 0, a, v)
-			a -= 3
-			if a < 0:
-				a = 180
+			if event.type == pygame.KEYDOWN:
+				keysHeld[event.key] = True
+				print event.key
+			if event.type == pygame.KEYUP:
+				keysHeld[event.key] = False
 
-			initPoint = [320, 230, 0]
-		else:
-			pos = (320 + int(x), 240 + int(t[0]))
-			x += 1
-			t = t[1:]
-			pygame.draw.circle(canvas, black, pos, r)
-			i = initPoint
-			p = (initPoint[0], int(yFla(i[0], i[1], i[2])))
-			pygame.draw.circle(canvas, red, p, 4, 2)
-			i[2] -= 2
-		canvas = pygame.transform.flip(canvas, False, True)
-		screen.blit(canvas, (0, 0))
+		cannon.update(events)
+		
+		if keysHeld[276]:
+			cannon.ang += 2
+		if keysHeld[275]:
+			cannon.ang -= 2
+		if keysHeld[274]:
+			cannon.vel -= 0.1
+		if keysHeld[273]:
+			cannon.vel += 0.1
+		if keysHeld[120]:
+			cannon.aof += 2
+		if keysHeld[122]:
+			cannon.aof -= 0.1
+		if keysHeld[113]:
+			cannon.height += 1
+			if cannon.height > 120:
+				cannon.height = 120
+		if keysHeld[101]:
+			cannon.height -= 1
+			if cannon.height < 1:
+				cannon.height = 1
+		if keysHeld[119]:
+			cannon.center[1] += 2
+			if cannon.center[1] > 480:
+				cannon.center[1] = 480
+		if keysHeld[115]:
+			cannon.center[1] -= 2
+			if cannon.center[1] < 0:
+				cannon.center[1] = 0
+		if keysHeld[100]:
+			cannon.center[0] += 2
+			if cannon.center[0] > 640:
+				cannon.center[0] = 640
+		if keysHeld[97]:
+			cannon.center[0] -= 2
+			if cannon.center[0] < 0:
+				cannon.center[0] = 0
+
+
+		if keysHeld[32]:
+			if cannon.shotRequested == False:
+				print "Shot Requested"
+				cannon.shotRequested = True
+
+		if keysHeld[27]:
+			cannon.hits = []
+
+		
+		cannon.canvas.blit(currentAngle, (10, 10))
+		cannon.canvas.blit(currentAof, (10, 20))
+		cannon.canvas.blit(currentVelocity, (10, 30))
+		cannon.canvas.blit(currentPoint, (10, 40))
+		cannon.canvas.blit(currentRange, (10, 50))
+		cannon.canvas.blit(currentFps, (10, 60))
+		cannon.draw(screen)
+		clock.tick(60)
 		pygame.display.flip()
 

@@ -31,13 +31,18 @@ class Map:
 			sprite.dirty = 1
 
 	def addStructure(self, structure):
-		sprites = self.tiles.get_sprites_at(structure.rect.center)
+		rect = structure.rect
+		if hasattr(structure, 'orig_rect'):
+			rect = structure.orig_rect
+		sprites = self.tiles.get_sprites_at(rect.center)
 		layer = len(sprites)
 		if layer > 6:
 			raise "Cannot build higher than 6 layers"
 		tile = sprites[0]
-		for sprite in sprites:
+		for sprite in sprites[1:]:
 			sprite.dirty = 1
+			if hasattr(sprite, 'height'):
+				structure.height += sprite.height
 		self.tiles.add(structure, layer = layer)
 		structure.tile = tile
 		structure.layer = layer

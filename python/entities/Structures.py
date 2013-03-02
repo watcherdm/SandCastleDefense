@@ -1,6 +1,7 @@
 import pygame, sys
 from math import fabs
 from base import *
+from engines import trajectory
 
 BLOCKSIZE = 50
 BEACHCOLOR = pygame.Color(255, 222, 73, 1)
@@ -39,19 +40,22 @@ class Structure(EventedSprite):
 			self.health = builder.time_building
 			self.max_health = self.time_to_build
 			builder.time_building += builder.build_speed
-		else:		
+		else:
 			if self.rect != None and position != None:
 				self.rect.topleft = position
 			# determine vertical offset by height
 			self.health = self.time_to_build
 			self.max_health = self.time_to_build
 			self.world.map.addStructure(self)
+			self.orig_rect = pygame.Rect(self.rect)
 			self.adjustToLayer()
+			print self.orig_rect
+			print self.rect
 			builder.finish_project()
 			self.on_buildfinish(builder)
 
 	def adjustToLayer(self):
-		self.rect.top = self.rect.top - ((self.layer - 1) * 6)
+		self.rect.top = self.rect.top - ((self.layer - 1) * 10)
 
 	def update(self, events):
 		EventedSprite.update(self, events)
@@ -122,7 +126,7 @@ class Pit(JoiningStructure):
 		self.time_to_build = 300
 
 	def adjustToLayer(self):
-		self.rect.top = self.rect.top + ((self.layer - 1) * 6)
+		self.rect.top = self.rect.top + ((self.layer - 1) * 10)
 
 
 	def on_buildfinish(self, builder):
@@ -154,6 +158,19 @@ class ArcherTower(Structure):
 		self.time_to_build = 300
 		self.rate_of_fire = 10
 		self.attack_power = 10
+		self.cannon = trajectory.Cannon()
+		self.cannon.fireTrigger = pygame.FASTFIRE
+		self.cannon.height = self.height
+	def update(self, events):
+		Structure.update(self, events)
+		center = self.rect.center
+		self.cannon.height = self.height
+		self.cannon.setPosition(center)
+		for event in events:
+			if event.type == pygame.KEYDOWN:
+				self.cannon.shotRequested = True
+		self.cannon.update(events)
+
 
 class WizardTower(Structure):
 	sprite_file = "mage_tower.png"
@@ -167,6 +184,19 @@ class WizardTower(Structure):
 		self.time_to_build = 300
 		self.rate_of_fire = 10
 		self.attack_power = 10
+		self.cannon = trajectory.Cannon()
+		self.cannon.fireTrigger = pygame.MEDFIRE
+		self.cannon.height = self.height
+	def update(self, events):
+		Structure.update(self, events)
+		center = self.rect.center
+		self.cannon.height = self.height
+		self.cannon.setPosition(center)
+		for event in events:
+			if event.type == pygame.KEYDOWN:
+				self.cannon.shotRequested = True
+		self.cannon.update(events)
+
 
 class BomberTower(Structure):
 	sprite_file = "bomber_tower.png"
@@ -180,6 +210,17 @@ class BomberTower(Structure):
 		self.time_to_build = 300
 		self.rate_of_fire = 10
 		self.attack_power = 10
+		self.cannon = trajectory.Cannon()
+		self.cannon.fireTrigger = pygame.SLOWFIRE
+	def update(self, events):
+		Structure.update(self, events)
+		center = self.rect.center
+		self.cannon.height = self.height
+		self.cannon.setPosition(center)
+		for event in events:
+			if event.type == pygame.KEYDOWN:
+				self.cannon.shotRequested = True
+		self.cannon.update(events)
 
 class Stairs(Structure):
 	sprite_file = "stairs_left.png"
