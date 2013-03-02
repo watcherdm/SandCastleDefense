@@ -112,11 +112,12 @@ def main():
 				if critter.moving == False:
 					critter.set_destination(world.map.getRandomTile())
 			# place some critters
-			
 
 		if wave_count >= len(wave):
 			wave_count = 0
 			wave = get_line(wave_count + 1, WAVEPRECISION)
+			pygame.mixer.Sound("sounds/oceanwave.wav").play()
+			# start a sound
 		
 		hl_block.update(events)
 
