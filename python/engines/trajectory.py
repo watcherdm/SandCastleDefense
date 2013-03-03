@@ -1,6 +1,7 @@
-from math import cos, sin, sqrt, asin, pow, tan, pi
+from math import cos, sin, sqrt, asin, pow, tan, pi, atan2
 import pygame, sys
 from itertools import combinations
+from entities.Characters import *
 gravity = 9.81
 view_angle = 30
 black = pygame.Color(0, 0, 0)
@@ -57,6 +58,16 @@ def angle_line(start, angle, distance):
 	radians = to_radians(angle)
 	return start[0] + distance * cos(radians), start[1] + distance * sin(radians)
 
+def angle_between_points(x1, y1, x2, y2):
+	dx = x2 - x1
+	dy = y2 - y1
+	rads = atan2(-dy, dx)
+	rads %= 2*pi
+	return  to_angle(rads)
+
+def distance_between_points(x1, y1, x2, y2):
+	return sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2))
+
 def angular_trajectory(start, angle, direction, velocity):
 	shadow = []
 	path = []
@@ -74,12 +85,17 @@ def angular_trajectory(start, angle, direction, velocity):
 		counter += 1
 	return path, shadow
 
+def time_in_air(distance):
+	return sqrt((2 * distance) / gravity)
+
+
 class Cannon:
 	def __init__(self):
 		print "Initializing cannon"
-		self.aof = 45
+		self._targets = []
+		self.aof = 180
 		self.rof = 10
-		self.vel = 5.5
+		self.vel = 3
 		self.ang = 180
 		self.height = 0
 		self.hits = []
@@ -91,6 +107,7 @@ class Cannon:
 		self.canvas.set_colorkey(black)
 		self.projectile_radius = 2
 		self.yOrigin = pygame.display.get_surface().get_rect().height
+		self.range = 50
 
 	def setPosition(self, pos):
 		screen_height = pygame.display.get_surface().get_rect().height
@@ -106,10 +123,60 @@ class Cannon:
 	def to3d(self, point, angle):
 		return (int(point[0]), int(self.yFla(point[0], point[1], point[2], angle)))
 
+	def convert_y(self):
+		return pygame.display.get_surface().get_rect().height - self.center[1]
+
 	def get_3d_point(self):
 		return (self.center[0], self.center[1], self.height)
 
+	def get_targets(self):
+		if hasattr(self, 'world'):
+			self._targets = self.world.critters
+		return self._targets
+
+	def set_target(self, target):
+		self._targets.append(target)
+
+	def remove_target(self, target):
+		self._targets.remove(target)
+
+	def angle_to_target(self, target):
+		x1 = self.center[0]
+		y1 = self.convert_y()
+		x2 = target.rect.center[0]
+		y2 = target.rect.center[1]
+		val = angle_between_points(x1, y1, x2, y2)
+		self.ang = val
+
+	def distance_to(self, target):
+		p1 = x1, y1 = self.center
+		p2 = x2, y2 = target.rect.center
+		return distance_between_points(x1, y1, x2, y2)
+
+	def velocity_to_distance(self, distance):
+		self.vel = sqrt(distance * gravity / m)
+
+	def in_range(self, target):
+		# In general, x and y must satisfy (x-center_x)^2 + (y - center_y)^2 < radius^2
+		x = target.rect.center[0]
+		y = target.rect.center[1]
+		cx = self.center[0]
+		cy = self.convert_y()
+		r = self.range + self.height
+		return pow(x - cx, 2) + pow(y - cy, 2) < pow(r, 2)
+
 	def update(self, events):
+		range = self.range + self.height
+		to_attack = []
+		for target in self.get_targets():
+			if self.in_range(target):
+				print "Target in range"
+				self.angle_to_target(target)
+				distance = self.distance_to(target)
+				self.velocity_to_distance(distance)
+				self.shotRequested = True
+				continue
+
 		self.canvas = pygame.Surface(pygame.display.get_surface().get_size())
 		self.canvas.set_colorkey(black)
 		for event in events:
@@ -122,9 +189,9 @@ class Cannon:
 			self.ang = 180
 		if self.ang > 180:
 			self.ang = -180
-		if self.aof > 90:
-			self.aof = 0
-		if self.aof < 0:
+		if self.aof > 180:
+			self.aof = 180
+		if self.aof < 90:
 			self.aof = 90
 
 		for projectile in self.projectiles:
@@ -153,16 +220,17 @@ class Cannon:
 		spoint = (self.center[0], self.center[1], 0)
 		pygame.draw.circle(self.canvas, red, p, 4, 2)
 		pygame.draw.circle(self.canvas, grey, self.to3d(spoint, view_angle) , 4, 2)
+		pygame.draw.circle(self.canvas, grey, self.to3d(spoint, view_angle) , self.range + self.height, 1)
 
 	def draw(self, surf):
 		self.draw_debug()
-		pygame.display.get_surface().blit(self.canvas, (0,0))
+		surf.blit(self.canvas, (0,0))
 
 pygame.FASTFIRE = 25
 pygame.MEDFIRE = 26
 pygame.SLOWFIRE = 27
 
-if __name__ == "__main__":
+def test():
 	fast = 10
 	med = 5
 	slow = 2
@@ -189,11 +257,16 @@ if __name__ == "__main__":
 		100: False, # position x up
 		97: False, # position x down
 		32: False,
-		27: False
+		27: False,
+		9: False
 	}		
 
 	cannon = Cannon()
-
+	targets = pygame.sprite.RenderUpdates()
+	target = Crab((0, 0))
+	cannon.set_target(target)
+	moveCannon = True
+	targets.add(target)
 	while True:
 
 		distance = get_distance_traveled(cannon.vel, cannon.height, cannon.aof)
@@ -214,8 +287,11 @@ if __name__ == "__main__":
 			if event.type == pygame.KEYUP:
 				keysHeld[event.key] = False
 
+		targets.update(events)
 		cannon.update(events)
-		
+		if keysHeld[9]:
+			# swith target
+			moveCannon = not moveCannon
 		if keysHeld[276]:
 			cannon.ang += 2
 		if keysHeld[275]:
@@ -229,47 +305,72 @@ if __name__ == "__main__":
 		if keysHeld[122]:
 			cannon.aof -= 0.1
 		if keysHeld[113]:
-			cannon.height += 1
-			if cannon.height > 120:
-				cannon.height = 120
+			if moveCannon:
+				cannon.height += 1
+				if cannon.height > 120:
+					cannon.height = 120
+			else:
+				pass
 		if keysHeld[101]:
-			cannon.height -= 1
-			if cannon.height < 1:
-				cannon.height = 1
+			if moveCannon:
+				cannon.height -= 1
+				if cannon.height < 1:
+					cannon.height = 1
+			else:
+				pass
 		if keysHeld[119]:
-			cannon.center[1] += 2
-			if cannon.center[1] > 480:
-				cannon.center[1] = 480
-		if keysHeld[115]:
-			cannon.center[1] -= 2
-			if cannon.center[1] < 0:
-				cannon.center[1] = 0
-		if keysHeld[100]:
-			cannon.center[0] += 2
-			if cannon.center[0] > 640:
-				cannon.center[0] = 640
-		if keysHeld[97]:
-			cannon.center[0] -= 2
-			if cannon.center[0] < 0:
-				cannon.center[0] = 0
+			if moveCannon:
+				cannon.center[1] += 2
+				if cannon.center[1] > 480:
+					cannon.center[1] = 480
+			else:
+				target.rect.top -= 2
 
+		if keysHeld[115]:
+			if moveCannon:
+				cannon.center[1] -= 2
+				if cannon.center[1] < 0:
+					cannon.center[1] = 0
+			else:
+				target.rect.top += 2
+
+		if keysHeld[100]:
+			if moveCannon:
+				cannon.center[0] += 2
+				if cannon.center[0] > 640:
+					cannon.center[0] = 640
+			else:
+				target.rect.left += 2
+
+		if keysHeld[97]:
+			if moveCannon:
+				cannon.center[0] -= 2
+				if cannon.center[0] < 0:
+					cannon.center[0] = 0
+			else:
+				target.rect.left -= 2
 
 		if keysHeld[32]:
-			if cannon.shotRequested == False:
-				print "Shot Requested"
-				cannon.shotRequested = True
+			if moveCannon:
+				if cannon.shotRequested == False:
+					print "Shot Requested"
+					cannon.shotRequested = True
 
 		if keysHeld[27]:
 			cannon.hits = []
 
 		
-		cannon.canvas.blit(currentAngle, (10, 10))
-		cannon.canvas.blit(currentAof, (10, 20))
-		cannon.canvas.blit(currentVelocity, (10, 30))
-		cannon.canvas.blit(currentPoint, (10, 40))
-		cannon.canvas.blit(currentRange, (10, 50))
-		cannon.canvas.blit(currentFps, (10, 60))
 		cannon.draw(screen)
+		targets.draw(screen)
+		screen.blit(currentAngle, (10, 10))
+		screen.blit(currentAof, (10, 20))
+		screen.blit(currentVelocity, (10, 30))
+		screen.blit(currentPoint, (10, 40))
+		screen.blit(currentRange, (10, 50))
+		screen.blit(currentFps, (10, 60))
 		clock.tick(60)
+
 		pygame.display.flip()
 
+if __name__ == "__main__":
+	test()

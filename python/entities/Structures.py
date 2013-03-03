@@ -159,13 +159,16 @@ class ArcherTower(Structure):
 		self.rate_of_fire = 10
 		self.attack_power = 10
 		self.cannon = trajectory.Cannon()
+		self.cannon.world = self.world
 		self.cannon.fireTrigger = pygame.FASTFIRE
 		self.cannon.height = self.height
 	def update(self, events):
 		Structure.update(self, events)
 		center = self.rect.center
-		self.cannon.height = self.height
+		if hasattr(self, "orig_rect"):
+			center = self.orig_rect.center
 		self.cannon.setPosition(center)
+		self.cannon.height = self.height
 		for event in events:
 			if event.type == pygame.KEYDOWN:
 				self.cannon.shotRequested = True
@@ -185,13 +188,16 @@ class WizardTower(Structure):
 		self.rate_of_fire = 10
 		self.attack_power = 10
 		self.cannon = trajectory.Cannon()
+		self.cannon.world = self.world
 		self.cannon.fireTrigger = pygame.MEDFIRE
 		self.cannon.height = self.height
 	def update(self, events):
 		Structure.update(self, events)
 		center = self.rect.center
-		self.cannon.height = self.height
+		if hasattr(self, "orig_rect"):
+			center = self.orig_rect.center
 		self.cannon.setPosition(center)
+		self.cannon.height = self.height
 		for event in events:
 			if event.type == pygame.KEYDOWN:
 				self.cannon.shotRequested = True
@@ -211,12 +217,15 @@ class BomberTower(Structure):
 		self.rate_of_fire = 10
 		self.attack_power = 10
 		self.cannon = trajectory.Cannon()
+		self.cannon.world = self.world
 		self.cannon.fireTrigger = pygame.SLOWFIRE
 	def update(self, events):
 		Structure.update(self, events)
 		center = self.rect.center
-		self.cannon.height = self.height
+		if hasattr(self, "orig_rect"):
+			center = self.orig_rect.center
 		self.cannon.setPosition(center)
+		self.cannon.height = self.height
 		for event in events:
 			if event.type == pygame.KEYDOWN:
 				self.cannon.shotRequested = True

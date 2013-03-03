@@ -200,6 +200,7 @@ class Jenai(SelectableCharacter):
         self.build_speed = 1.25
         self.move_speed = 2
         self.ani_speed_init = 30
+        self.add_sand(10000)
 
 class Steve(SelectableCharacter):
     def __init__(self):
@@ -209,6 +210,7 @@ class Steve(SelectableCharacter):
         self.build_speed = .75
         self.move_speed = 2.5
         self.ani_speed_init = 20
+        self.add_sand(10000)
 
 class Crab(Critter):
     def __init__(self, pos):

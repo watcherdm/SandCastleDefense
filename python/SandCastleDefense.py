@@ -85,7 +85,7 @@ def main():
 	fast = 10
 	med = 5
 	slow = 2
-
+	critter_level = 5
 	pygame.FASTFIRE = 25
 	pygame.MEDFIRE = 26
 	pygame.SLOWFIRE = 27
@@ -95,6 +95,7 @@ def main():
 
 	healthring = HealthRing()
 	critters = pygame.sprite.OrderedUpdates()
+	world.critters = critters
 	while True:
 		world.map.dirtyTiles()
 		events = pygame.event.get()
@@ -105,7 +106,7 @@ def main():
 				current_tide_level -= .01
 
 		if wave_count == len(wave) / 2:
-			if len(critters.sprites()) == 0:
+			if len(critters.sprites()) < critter_level:
 				critter = Crab(world.map.getRandomTile())
 				critters.add(critter)
 			for critter in critters:
@@ -130,12 +131,6 @@ def main():
 		if (i % 3 == 0):
 			wave_count += 1
 
-		if WETSANDCOLOR.a > 0:
-			WETSANDCOLOR.a = WETSANDCOLOR.a - 1
-			oosurf = pygame.Surface((oldocean.right - oldocean.left, oldocean.bottom - oldocean.top))
-			oosurf.set_alpha(WETSANDCOLOR.a)
-			oosurf.fill(WETSANDCOLOR)
-			sand.blit(oosurf, (oldocean.left, oldocean.top))
 
 		for name in levels:
 			for level in levels[name]:
@@ -156,6 +151,12 @@ def main():
 		for sprite in world.map.tiles.sprites():
 			if hasattr(sprite, 'cannon'):
 				sprite.cannon.draw(sand)
+		if WETSANDCOLOR.a > 0:
+			WETSANDCOLOR.a = WETSANDCOLOR.a - 1
+			oosurf = pygame.Surface((oldocean.right - oldocean.left, oldocean.bottom - oldocean.top))
+			oosurf.set_alpha(WETSANDCOLOR.a)
+			oosurf.fill(WETSANDCOLOR)
+			sand.blit(oosurf, (oldocean.left, oldocean.top))
 		sand.fill(OCEANCOLOR, ocean)
 		menuring.draw(sand)
 		healthring.draw(sand)
