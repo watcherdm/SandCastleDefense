@@ -1,5 +1,4 @@
-from math import cos, sin, sqrt, asin, pow, tan, pi, atan2
-from math import radians as rad
+from math import cos, sin, sqrt, asin, pow, tan, pi, atan2,degrees,radians
 import pygame, sys
 from itertools import combinations
 from python.entities.Characters import *
@@ -15,11 +14,11 @@ def time_of_flight(distance, velocity, angle):
 	angle = 180 * angle / pi
 	return distance / velocity * cos(angle)
 
-def to_angle(radians):
-	return 180 * radians / pi
+#def to_angle(radians): #use math.degrees
+#	return 180 * radians / pi
 
-def to_radians(angle):
-	return pi * angle / 180
+#def to_radians(angle): #use math.radians
+#	return pi * angle / 180
 
 def get_distance_traveled(velocity, height, angle):
 	radians = to_radians(angle)
@@ -262,8 +261,8 @@ class Cannon:
 		p2 = x2, y2 = target.rect.center
 		return distance_between_points(x1, y1, x2, y2)
 
-	def velocity_to_distance(self, distance):
-		self.vel = sqrt(distance * gravity / m)
+	def angle_to_go_distance(self, distance, velocity):
+		return degrees(.5*asin((9.80665*distance)/(velocity**2)))
 
 	def in_range(self, target):
 		# In general, x and y must satisfy (x-center_x)^2 + (y - center_y)^2 < radius^2
