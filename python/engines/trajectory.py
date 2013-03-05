@@ -9,16 +9,17 @@ black = pygame.Color(0, 0, 0)
 grey = pygame.Color(128,128,128)
 red = pygame.Color(255,0,0)
 white = pygame.Color(255, 255, 255)
+FRAMERATE = 60
 
 def time_of_flight(distance, velocity, angle):
 	angle = 180 * angle / pi
 	return distance / velocity * cos(angle)
 
-#def to_angle(radians): #use math.degrees
-#	return 180 * radians / pi
+def to_angle(radians): #use math.degrees
+	return 180 * radians / pi
 
-#def to_radians(angle): #use math.radians
-#	return pi * angle / 180
+def to_radians(angle): #use math.radians
+	return pi * angle / 180
 
 def get_distance_traveled(velocity, height, angle):
 	radians = to_radians(angle)
@@ -38,20 +39,25 @@ def velocity_at_x(x, velocity, angle):
 	return sqrt(pow(x_velocity(velocity, angle), 2) + pow(y_velocity(velocity, angle), 2))
 
 def height_at_x(x, orig_height, angle, velocity):
-	radians = to_radians(angle)
+	radians = to_radians(angle) * 2
 	rtan = tan(radians)
 	rcos = cos(radians)
-	val = orig_height + (x * rtan) - gravity * (x * x) / pow(2 * (velocity * rcos), 2)
+	val = orig_height + (x * rtan) - gravity * (x**2) / (2 * (velocity * rcos) ** 2)
 	return val
 
-def get_trajectory(x, h, a, v):
+def get_trajectory(x, h, a, vel):
 	trajectory = []
-	val = 0
-	while val >= 0.0 and val <= 1000:
-		val = height_at_x(x, h, a, v)
-		if val > 0:
-			trajectory.append(val)
-		x += 1
+	v = vel
+	while h >= 0.0 and h <= 1000:
+		print vel
+		v = velocity_at_x(x, vel, a)
+		print v
+		h = height_at_x(x, h, a, v)
+		if h > 0.0:
+			trajectory.append(h)
+		else:
+			trajectory.append(0)
+		x += vel / 6
 	return trajectory
 
 def angle_line(start, angle, distance):
@@ -73,6 +79,7 @@ def angular_trajectory(start, angle, direction, velocity):
 	path = []
 	x = start[0]
 	y = start[1]
+	ms = 1000 / FRAMERATE
 	counter = 0
 	t = get_trajectory(0, start[2], angle, velocity)
 	for z in t:
@@ -82,7 +89,7 @@ def angular_trajectory(start, angle, direction, velocity):
 		if (z > 0):
 			shadow.append((x, y, 0))
 			path.append((x, y, 0))			
-		counter += 1
+		counter += velocity / 6
 	return path, shadow
 
 def time_in_air(distance):
@@ -248,13 +255,17 @@ class Cannon:
 	def remove_target(self, target):
 		self._targets.remove(target)
 
-	def angle_to_target(self, target):
+	def angle_to_target(self, target, for_z = False):
 		x1 = self.center[0]
-		y1 = self.convert_y()
+		if for_z:
+			y1 = self.height
+			y2 = 0 #hit the ground
+		else:
+			y1 = self.convert_y()
+			y2 = target.rect.center[1]
 		x2 = target.rect.center[0]
-		y2 = target.rect.center[1]
 		val = angle_between_points(x1, y1, x2, y2)
-		self.ang = val
+		return val
 
 	def distance_to(self, target):
 		p1 = x1, y1 = self.center
@@ -262,7 +273,24 @@ class Cannon:
 		return distance_between_points(x1, y1, x2, y2)
 
 	def angle_to_go_distance(self, distance, velocity):
-		return degrees(.5*asin((9.80665*distance)/(velocity**2)))
+		print ' :: '.join([str(gravity), str(distance), str(velocity)])
+		rate = (gravity*distance)/(velocity**2)
+		if rate < 45 and rate > 0:
+			return to_angle(.5*asin(to_radians(rate)))
+		return 0
+
+	def aof_to_target(self, velocity, target):
+		r = self.distance_to(target)
+		a = to_radians(self.angle_to_target(target, True))
+		x = r * cos(a)
+		y = r * sin(a)
+		v = velocity
+		g = gravity
+		cosa = cos(a)
+		sina = sin(a)
+		#
+		angle = tan(to_radians(v**2 + sqrt(abs(v**4 - g*(g * r**2 * cosa ** 2) + 2 * velocity ** 2 * r * sina))/g * r * cosa))**-1
+		return angle
 
 	def in_range(self, target):
 		# In general, x and y must satisfy (x-center_x)^2 + (y - center_y)^2 < radius^2
@@ -287,11 +315,13 @@ class Cannon:
 		for target in self.get_targets():
 			if self.in_range(target):
 				print "Target in range"
-				self.angle_to_target(target)
+				self.ang = self.angle_to_target(target)
 				distance = self.distance_to(target)
-				self.velocity_to_distance(distance)
-				self.shotRequested = True
-				continue
+				aof = self.aof_to_target(self.vel, target)
+				if aof > 0 and aof < 45:
+					self.aof = aof
+					self.shotRequested = True
+					continue
 
 		self.canvas = pygame.Surface(pygame.display.get_surface().get_size())
 		self.canvas.set_colorkey(black)
@@ -302,12 +332,6 @@ class Cannon:
 # 					projectile = angular_trajectory(self.get_3d_point(), self.aof, self.ang, self.vel)
 # 					self.projectiles.append([projectile[0], projectile[1]])
 					self.shotRequested = False	
-# 		if self.ang < -180:
-# 			self.ang = 180
-# 		if self.ang > 180:
-# 			self.ang = -180
-# 		if self.aof > 180:
-# 			self.aof = 180
 		if self.aof < 90:
 			self.aof = 90
 		if self.inclination < 0:
@@ -432,7 +456,7 @@ def test():
 		if keysHeld[273]:
 			cannon.vel += 0.1
 		if keysHeld[120]:
-			cannon.aof += 2
+			cannon.aof += 0.1
 		if keysHeld[122]:
 			cannon.aof -= 0.1
 		if keysHeld[113]:
