@@ -1,4 +1,4 @@
-from math import cos, sin, sqrt, asin, pow, tan, pi, atan2,degrees,radians
+from math import cos, sin, sqrt, asin, pow, tan, pi, atan, atan2,degrees,radians
 import pygame, sys
 from itertools import combinations
 from entities.Characters import *
@@ -49,15 +49,13 @@ def get_trajectory(x, h, a, vel):
 	trajectory = []
 	v = vel
 	while h >= 0.0 and h <= 1000:
-		print vel
 		v = velocity_at_x(x, vel, a)
-		print v
 		h = height_at_x(x, h, a, v)
 		if h > 0.0:
 			trajectory.append(h)
 		else:
 			trajectory.append(0)
-		x += vel / 6
+		x += vel
 	return trajectory
 
 def angle_line(start, angle, distance):
@@ -89,7 +87,7 @@ def angular_trajectory(start, angle, direction, velocity):
 		if (z > 0):
 			shadow.append((x, y, 0))
 			path.append((x, y, 0))			
-		counter += velocity / 6
+		counter += velocity
 	return path, shadow
 
 def time_in_air(distance):
@@ -164,6 +162,12 @@ class Cannon:
 		p2 = x2, y2 = target.rect.center
 		return distance_between_points(x1, y1, x2, y2)
 
+	def real_distance_to(self, target):
+		p1 = x1, y1, z1 = self.center[0], self.center[1], self.height
+		p2 = x2, y2, z2 = target.rect.center[0], target.rect.center[1], 0
+		return distance_between_points(0,  z1, self.distance_to(target), 0)
+
+
 	def angle_to_go_distance(self, distance, velocity):
 		print ' :: '.join([str(gravity), str(distance), str(velocity)])
 		rate = (gravity*distance)/(velocity**2)
@@ -172,17 +176,16 @@ class Cannon:
 		return 0
 
 	def aof_to_target(self, velocity, target):
-		r = self.distance_to(target)
-		a = to_radians(self.angle_to_target(target, True))
-		x = r * cos(a)
-		y = r * sin(a)
+		r = self.real_distance_to(target)
+		x = r
+		y = - self.height
 		v = velocity
 		g = gravity
-		cosa = cos(a)
-		sina = sin(a)
 		#
-		angle = tan(to_radians(v**2 + sqrt(abs(v**4 - g*(g * r**2 * cosa ** 2) + 2 * velocity ** 2 * r * sina))/g * r * cosa))**-1
-		return angle
+		rads = atan(v ** 2 - sqrt(abs(v ** 4 - g * (g * x ** 2 + 2 * y * v ** 2)))/ g * x)
+		print rads
+		print to_angle(abs(rads))
+		return  to_angle(abs(rads))
 
 	def in_range(self, target):
 		# In general, x and y must satisfy (x-center_x)^2 + (y - center_y)^2 < radius^2
@@ -198,14 +201,19 @@ class Cannon:
 		to_attack = []
 		for target in self.get_targets():
 			if self.in_range(target):
-				print "Target in range"
 				self.ang = self.angle_to_target(target)
-				distance = self.distance_to(target)
+				distance_x = self.distance_to(target)
+				distance = self.real_distance_to(target)
+				print "distances"
+				print "x :: " + str(distance_x)
+				print "3d :: " + str(distance)
+				if distance_x < self.height:
+					self.vel = distance_x / 12
+				else:
+					self.vel = distance / 12
 				aof = self.aof_to_target(self.vel, target)
-				if aof > 0 and aof < 45:
-					self.aof = aof
-					self.shotRequested = True
-					continue
+				self.aof = aof
+				self.shotRequested = True
 
 		self.canvas = pygame.Surface(pygame.display.get_surface().get_size())
 		self.canvas.set_colorkey(black)
