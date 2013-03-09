@@ -26,8 +26,11 @@ def get_distance_traveled(velocity, height, angle):
 
 def y_velocity(velocity, angle):
 	radians = to_radians(angle)
+	vy = 0
 	x = (velocity * cos(radians)) * 0.1
-	vy = velocity * sin(radians) - gravity * x / velocity * cos(radians)
+	vx = velocity * cos(radians)
+	if vx > 0:
+		vy = velocity * sin(radians) - gravity * x / velocity * cos(radians)
 	return vy
 
 
@@ -183,9 +186,7 @@ class Cannon:
 		g = gravity
 		#
 		rads = atan(v ** 2 - sqrt(abs(v ** 4 - g * (g * x ** 2 + 2 * y * v ** 2)))/ g * x)
-		print rads
-		print to_angle(abs(rads))
-		return  to_angle(abs(rads))
+		return abs(rads)
 
 	def in_range(self, target):
 		# In general, x and y must satisfy (x-center_x)^2 + (y - center_y)^2 < radius^2
@@ -204,9 +205,6 @@ class Cannon:
 				self.ang = self.angle_to_target(target)
 				distance_x = self.distance_to(target)
 				distance = self.real_distance_to(target)
-				print "distances"
-				print "x :: " + str(distance_x)
-				print "3d :: " + str(distance)
 				if distance_x < self.height:
 					self.vel = distance_x / 12
 				else:
@@ -242,8 +240,8 @@ class Cannon:
 				projectile[1] = s = s[1:]
 				if len(projectile[0]) == 0:
 					self.hits.append(pos)
-				pygame.draw.circle(self.canvas, red, pos, self.projectile_radius)
-				pygame.draw.circle(self.canvas, grey, spos, self.projectile_radius)
+				pygame.draw.circle(self.canvas, black, pos, self.projectile_radius)
+				# pygame.draw.circle(self.canvas, grey, spos, self.projectile_radius)
 			else:
 				self.projectiles.remove(projectile)
 
