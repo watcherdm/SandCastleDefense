@@ -49,8 +49,6 @@ class Structure(EventedSprite):
 			self.world.map.addStructure(self)
 			self.orig_rect = pygame.Rect(self.rect)
 			self.adjustToLayer()
-			print self.orig_rect
-			print self.rect
 			builder.finish_project()
 			self.on_buildfinish(builder)
 
@@ -59,6 +57,9 @@ class Structure(EventedSprite):
 
 	def update(self, events):
 		EventedSprite.update(self, events)
+		if self.health == 0:
+			self.kill()
+		self.debug_draw()
 
 
 class JoiningStructure(Structure):

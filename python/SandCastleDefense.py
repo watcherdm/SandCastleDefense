@@ -20,6 +20,15 @@ WETSANDCOLOR = pygame.Color(94,82,69, 50)
 WAVEPRECISION = 100
 def main():
 	pygame.init()
+	pygame.joystick.init()
+	j = None
+	jscount = pygame.joystick.get_count()
+	if jscount > 0:
+		print "Joysticks Found" + str(jscount)
+		j = pygame.joystick.Joystick(jscount - 1)
+		j.init()
+		print j.get_name()
+
 	world = World(SCREENSIZE)
 	pygame.display.set_caption('Sand Castle Defense ' + version)
 	sand = pygame.display.set_mode(SCREENSIZE)
@@ -105,13 +114,25 @@ def main():
 			else:
 				current_tide_level -= .01
 
+		if j != None:
+			axes = j.get_numaxes() 
+			print axes
+			for i in range(axes):
+				print j.get_axis(i)
+			buttons = j.get_numbuttons()
+			for i in range(buttons):
+				print j.get_button(i)
+			hats = j.get_numhats()
+			for i in range(hats):
+				print j.get_hat(i)
+
+
 		if wave_count == len(wave) / 2:
 			if len(critters.sprites()) < critter_level:
 				critter = Crab(world.map.getRandomTile())
 				critters.add(critter)
 			for critter in critters:
-				if critter.moving == False:
-					critter.set_destination(world.map.getRandomTile())
+				critter.update(events)
 			# place some critters
 
 		if wave_count >= len(wave):

@@ -1,8 +1,10 @@
 import os, sys, pygame, glob
 from base import *
+from Structures import *
 
 
 BLOCKSIZE = 50
+
 
 class Aspect(pygame.sprite.Sprite):
     def __init__(self, name = None, button = None):
@@ -11,7 +13,10 @@ class Aspect(pygame.sprite.Sprite):
         self.image, self.rect = load_image(self.name + '_hat.png', -1)
 
 class Character(EventedSprite):
+
     def __init__(self, name = None, position = (0,0)):
+        screen = pygame.display.get_surface()
+        self.world = World(screen.get_size())
         self.direction = 1
         self.max_health = 500
         self.health = 200
@@ -51,6 +56,10 @@ class Character(EventedSprite):
             for handler in self._callbacks[name]:
                 handler["method"](handler["context"], *args)
 
+    def on_collide(self, collisions):
+        print str(len(collisions)) + " Collisions detected"
+        return False
+
     def update(self, events):
         self.ani_speed -= 1
         if self.ani_speed == 0:
@@ -61,6 +70,10 @@ class Character(EventedSprite):
 
         self.checkState(events)
         if self.moving:
+            coll = self.check_collision()
+            if len(coll) > 0:
+                self.moving = False
+                self.on_collide(coll)
             self.image = self.ani[1][self.ani_pos]
             self._walk()
         else:
@@ -69,10 +82,16 @@ class Character(EventedSprite):
             self.image = self.ani[0][self.ani_pos]
         if self.aspect != None:
             # draw the hat.
-            self.aspect.rect.top = self.rect.top - 30
-            self.aspect.rect.left = self.rect.left
+            self.aspect.rect.top = - 10
+            self.aspect.rect.left = 0
             self.image.blit(self.aspect.image, self.aspect.rect.topleft)
         self.face_direction()
+        self.debug_draw()
+
+    def check_collision(self):
+        structures = self.world.map.tiles.get_sprites_from_layer(1)
+        collisions = pygame.sprite.spritecollide(self, structures, False, pygame.sprite.collide_rect)
+        return collisions
 
     def _walk(self):
         current_destination = self.destinations[0]
@@ -101,6 +120,9 @@ class Character(EventedSprite):
     def move_done(self):
         return
 
+    def clear_destination(self):
+        self.destinations = []
+
     def set_destination(self, position):
         self.ani_speed_init = 10
         self.moving = True
@@ -112,7 +134,6 @@ class SelectableCharacter(Character):
     def __init__(self, name, position = (10,10)):
         Character.__init__(self, name, position)
         screen = pygame.display.get_surface()
-        self.world = World(screen.get_size())
         self.project = None
         self.area = screen.get_rect()
         self.building = False
@@ -121,6 +142,9 @@ class SelectableCharacter(Character):
         self.move_speed = 1
         self.build_speed = 1
         self._sand = 0
+
+    def check_collision(self):
+        return []
 
     def add_sand(self, grains):
         self._sand += grains
@@ -167,6 +191,7 @@ class SelectableCharacter(Character):
     def set_destination(self, position):
         if not self.building:
             Character.set_destination(self, position)
+
     def finish_project(self):
         self.time_building = 0
         self.xp += 100
@@ -191,13 +216,57 @@ class SelectableCharacter(Character):
 class Critter(Character):
     def __init__(self, type, pos):
         Character.__init__(self, type, pos)
+        self.range = 50
+        self.target = None
+        self._targets = []
+        self.damage = 0
+        self.attacking = False
+
+    def in_range(self, target):
+        # In general, x and y must satisfy (x-center_x)^2 + (y - center_y)^2 < radius^2
+        x = target.rect.center[0]
+        y = target.rect.center[1]
+        cx = self.rect.center[0]
+        cy = self.rect.center[1]
+        r = self.range
+        return pow(x - cx, 2) + pow(y - cy, 2) < pow(r, 2)
+
+    def on_collide(self, collisions):
+        if self.target in collisions:
+            self.attacking = True
+        return False
+
+    def get_targets(self):
+        if hasattr(self, 'world'):
+            self._targets = self.world.map.tiles.get_sprites_from_layer(1)
+        return self._targets
+
+    def update(self, events):
+        Character.update(self, events)
+        if self.attacking == False:
+            for target in self.get_targets():
+                print "Checking " + str(len(self.get_targets())) + " for range"
+                if self.in_range(target) and isinstance(target, Structure) and self.target == None:
+                    print "Target selected"
+                    self.target = target
+                    if self.moving:
+                        self.clear_destination()
+                    self.set_destination(self.target.rect.topleft)
+        else:
+            self.target.health -= self.damage
+        if self.target == 0:
+            self.target = None
+
+        if self.target == None and self.moving == False:
+            self.set_destination(self.world.map.getRandomTile())
+
 
 class Jenai(SelectableCharacter):
     def __init__(self):
         SelectableCharacter.__init__(self, 'jenai', (0,0))
         self.health = 200
         self.max_health = 200
-        self.build_speed = 1.25
+        self.build_speed = 5
         self.move_speed = 2
         self.ani_speed_init = 30
         self.add_sand(10000)
@@ -207,7 +276,7 @@ class Steve(SelectableCharacter):
         SelectableCharacter.__init__(self, 'steve', (0, 128))
         self.health = 200
         self.max_health = 200
-        self.build_speed = .75
+        self.build_speed = 3.75
         self.move_speed = 2.5
         self.ani_speed_init = 20
         self.add_sand(10000)
@@ -219,3 +288,4 @@ class Crab(Critter):
         self.max_health = 50
         self.move_speed = 2.5
         self.ani_speed_init = 20
+        self.damage = 1

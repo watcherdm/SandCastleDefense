@@ -410,11 +410,7 @@ def test():
 	}		
 
 	cannon = Cannon()
-	targets = pygame.sprite.RenderUpdates()
-	target = Crab((0, 0))
-	cannon.set_target(target)
 	moveCannon = True
-	targets.add(target)
 	while True:
 
 		distance = get_distance_traveled(cannon.vel, cannon.height, cannon.aof)
@@ -435,11 +431,7 @@ def test():
 			if event.type == pygame.KEYUP:
 				keysHeld[event.key] = False
 
-		targets.update(events)
 		cannon.update(events)
-		if keysHeld[9]:
-			# swith target
-			moveCannon = not moveCannon
 		if keysHeld[276]:
 			cannon.ang += 2
 		if keysHeld[275]:
@@ -453,63 +445,41 @@ def test():
 		if keysHeld[122]:
 			cannon.aof -= 0.1
 		if keysHeld[113]:
-			if moveCannon:
-				cannon.height += 1
-				if cannon.height > 120:
-					cannon.height = 120
-			else:
-				pass
+			cannon.height += 1
+			if cannon.height > 120:
+				cannon.height = 120
 		if keysHeld[101]:
-			if moveCannon:
-				cannon.height -= 1
-				if cannon.height < 1:
-					cannon.height = 1
-			else:
-				pass
+			cannon.height -= 1
+			if cannon.height < 1:
+				cannon.height = 1
 		if keysHeld[119]:
-			if moveCannon:
-				cannon.center[1] += 2
-				if cannon.center[1] > 480:
-					cannon.center[1] = 480
-			else:
-				target.rect.top -= 2
+			cannon.center[1] += 2
+			if cannon.center[1] > 480:
+				cannon.center[1] = 480
 
 		if keysHeld[115]:
-			if moveCannon:
-				cannon.center[1] -= 2
-				if cannon.center[1] < 0:
-					cannon.center[1] = 0
-			else:
-				target.rect.top += 2
-
+			cannon.center[1] -= 2
+			if cannon.center[1] < 0:
+				cannon.center[1] = 0
 		if keysHeld[100]:
-			if moveCannon:
-				cannon.center[0] += 2
-				if cannon.center[0] > 640:
-					cannon.center[0] = 640
-			else:
-				target.rect.left += 2
+			cannon.center[0] += 2
+			if cannon.center[0] > 640:
+				cannon.center[0] = 640
 
 		if keysHeld[97]:
-			if moveCannon:
-				cannon.center[0] -= 2
-				if cannon.center[0] < 0:
-					cannon.center[0] = 0
-			else:
-				target.rect.left -= 2
-
+			cannon.center[0] -= 2
+			if cannon.center[0] < 0:
+				cannon.center[0] = 0
 		if keysHeld[32]:
-			if moveCannon:
-				if cannon.shotRequested == False:
-					print "Shot Requested"
-					cannon.shotRequested = True
+			if cannon.shotRequested == False:
+				print "Shot Requested"
+				cannon.shotRequested = True
 
 		if keysHeld[27]:
 			cannon.hits = []
 
 		
 		cannon.draw(screen)
-		targets.draw(screen)
 		screen.blit(currentAngle, (10, 10))
 		screen.blit(currentAof, (10, 20))
 		screen.blit(currentVelocity, (10, 30))
