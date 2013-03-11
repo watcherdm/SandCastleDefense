@@ -1,6 +1,11 @@
 import pygame, os, sys
 
+RED = pygame.Color(255, 0, 0, 255)
+
 class EventedSprite(pygame.sprite.DirtySprite):
+  def debug_draw(self):
+    pygame.draw.rect(self.image, RED, pygame.Rect((0,0,self.rect.width, self.rect.height)), 3)
+
   def __init__(self):
     pygame.sprite.DirtySprite.__init__(self)
     self.selected = False

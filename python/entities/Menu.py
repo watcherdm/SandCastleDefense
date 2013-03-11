@@ -36,6 +36,7 @@ class Project:
 
 class HighlightBlock(EventedSurface):
 	def __init__(self):
+		self.world = World(pygame.display.get_surface().get_size())
 		surf = pygame.display.get_surface()
 		EventedSurface.__init__(self, surf.get_size())
 		self.rect = self.get_rect()
@@ -43,6 +44,7 @@ class HighlightBlock(EventedSurface):
 		self.block_rect = None
 
 	def on_mousemove(self, event):
+
 		pos = ((event.pos[0] / self.bs) * self.bs, (event.pos[1] / self.bs) * self.bs)
 		top = pos[1]
 		left = pos[0]
@@ -234,9 +236,6 @@ class StructureButton(Button):
 	def on_mouseout(self, event):
 		self.disable()
 
-	def on_click(self, event):
-		self.world.stop_event_propogation()
-	
 	def state(self):
 		return 'enabled' if self.enabled == True else 'disabled'
 
