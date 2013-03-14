@@ -61,6 +61,10 @@ class Structure(EventedSprite):
 			self.kill()
 		self.debug_draw()
 
+	def kill(self):
+		self.world.map.tiles.get_at()
+		EventedSprite.kill(self)
+
 
 class JoiningStructure(Structure):
 	def update(self, events):
