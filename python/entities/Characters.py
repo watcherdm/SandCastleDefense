@@ -1,6 +1,7 @@
 import os, sys, pygame, glob
 from base import *
 from Structures import *
+from math import sqrt
 
 
 BLOCKSIZE = 50
@@ -13,6 +14,13 @@ class Aspect(pygame.sprite.Sprite):
         self.image, self.rect = load_image(self.name + '_hat.png', -1)
 
 class Character(EventedSprite):
+
+    def path_to(self, target):
+        angle = self.angle_between_points(self.rect.center[0], self.rect.center[1], target.rect.center[0], target.rect.center[1])
+
+    def generate_path(self):
+        if self.destinations[0] != None and self.path == None:
+            return self.path_to(self.destinations[0])
 
     def __init__(self, name = None, position = (0,0)):
         screen = pygame.display.get_surface()
@@ -77,6 +85,7 @@ class Character(EventedSprite):
             self.image = self.ani[1][self.ani_pos]
             self._walk()
         else:
+            # healing over time
             if self.health < self.max_health:
                 self.health += 0.1
             self.image = self.ani[0][self.ani_pos]
@@ -96,8 +105,10 @@ class Character(EventedSprite):
     def _walk(self):
         current_destination = self.destinations[0]
 
-        distance = fromLeft, fromTop = cmp(current_destination[0] - self.rect.left, 0), cmp(current_destination[1] - self.rect.top, 0)
-
+        dvector = fromLeft, fromTop = cmp( current_destination[0] - self.rect.left, 0), cmp(current_destination[1] - self.rect.top , 0)
+        x =  current_destination[0] - self.rect.left
+        y =  current_destination[1] - self.rect.top
+        print x, y
         if self.rect.left == current_destination[0]:
             fromLeft = 0
         if self.rect.top == current_destination[1]:
@@ -109,13 +120,20 @@ class Character(EventedSprite):
             self.destinations = []
             # you reached the destination, now build if you have a project
             self.move_done()
+            return
 
-        movePosition = fromLeft * self.move_speed, fromTop * self.move_speed
+        distance = sqrt(x ** 2 + y ** 2)
+        print distance
+        if distance != 0:
+            normals = x / distance, y / distance
+            print normals
+            movePosition = (normals[0] * self.move_speed), (normals[1] * self.move_speed)
+            self.direction = cmp(fromLeft, 0)
+            newpos = self.rect.move(movePosition)
+            self.rect = newpos
 
-        self.direction = fromLeft
 
-        newpos = self.rect.move(movePosition)
-        self.rect = newpos
+
 
     def move_done(self):
         return
@@ -242,7 +260,6 @@ class Critter(Character):
         return self._targets
 
     def update(self, events):
-        Character.update(self, events)
         if self.attacking == False:
             for target in self.get_targets():
                 print "Checking " + str(len(self.get_targets())) + " for range"
@@ -254,8 +271,11 @@ class Critter(Character):
                     self.set_destination(self.target.rect.topleft)
         else:
             self.target.health -= self.damage
-        if self.target == 0:
-            self.target = None
+            if self.target.health == 0:
+                self.target = None
+                self.attacking = False
+
+        Character.update(self, events)
 
         if self.target == None and self.moving == False:
             self.set_destination(self.world.map.getRandomTile())

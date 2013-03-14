@@ -3,6 +3,32 @@ import pygame, os, sys
 RED = pygame.Color(255, 0, 0, 255)
 
 class EventedSprite(pygame.sprite.DirtySprite):
+  def get_points(self, target):
+    x1 = self.rect.center[0]
+    y1 = self.rect.center[1]
+    x2 = target.rect.center[0]
+    y2 = target.rect.center[1]
+    return (x1, y1), (x2, y2)
+  def angle_between_points(self, target):
+    p1, p2 = self.get_points(target)
+    x1 = p1[0]
+    y1 = p1[1]
+    x2 = p2[0]
+    y2 = p2[1]
+    dx = x2 - x1
+    dy = y2 - y1
+    rads = atan2(-dy, dx)
+    rads %= 2*pi
+    return  to_angle(rads)
+
+  def distance_between_points(self, target):
+    p1, p2 = self.get_points(target)
+    x1 = p1[0]
+    y1 = p1[1]
+    x2 = p2[0]
+    y2 = p2[1]
+    return sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2))
+
   def debug_draw(self):
     pygame.draw.rect(self.image, RED, pygame.Rect((0,0,self.rect.width, self.rect.height)), 3)
 

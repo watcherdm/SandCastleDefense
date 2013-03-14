@@ -76,9 +76,9 @@ def main():
 			4000: "pirate"
 		},
 		"jenai": {
-			400: "knight",
-			1200: "wizard",
-			4000: "pirate"
+			400: "wizard",
+			1200: "pirate",
+			4000: "knight"
 		}
 	}
 
