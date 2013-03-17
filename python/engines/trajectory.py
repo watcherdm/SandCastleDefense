@@ -203,9 +203,12 @@ class Physics:
 
 class Cannon:
 	def __init__(self):
+<<<<<<< HEAD
 		print "Initializing cannon"
 		self.projectile_type = Cannonball
 		self.physics_variables = Physics()
+=======
+>>>>>>> 4e764d1... Structures and Critters destroy each other now.
 		self._targets = []
 		self.inclination = 0
 		self.azimuth = 180
@@ -224,6 +227,7 @@ class Cannon:
 		self.projectile_radius = 2
 		self.yOrigin = pygame.display.get_surface().get_rect().height
 		self.range = 50
+		self.damage = 1
 
 	def setPosition(self, pos):
 		screen_height = pygame.display.get_surface().get_rect().height
@@ -280,7 +284,6 @@ class Cannon:
 
 
 	def angle_to_go_distance(self, distance, velocity):
-		print ' :: '.join([str(gravity), str(distance), str(velocity)])
 		rate = (gravity*distance)/(velocity**2)
 		if rate < 45 and rate > 0:
 			return to_angle(.5*asin(to_radians(rate)))
@@ -315,9 +318,10 @@ class Cannon:
 
 	def update(self, events):
 		range = self.range + self.height
-		to_attack = []
+		to_attack = None
 		for target in self.get_targets():
 			if self.in_range(target):
+				to_attack = target
 				self.ang = self.angle_to_target(target)
 				distance_x = self.distance_to(target)
 				distance = self.real_distance_to(target)
@@ -328,6 +332,7 @@ class Cannon:
 				aof = self.aof_to_target(self.vel, target)
 				self.aof = aof
 				self.shotRequested = True
+				continue
 
 		self.canvas = pygame.Surface(pygame.display.get_surface().get_size())
 		self.canvas.set_colorkey(black)
@@ -335,8 +340,6 @@ class Cannon:
 			if event.type == self.fireTrigger:
 				if self.shotRequested:
 					self.fire_projectile()
-# 					projectile = angular_trajectory(self.get_3d_point(), self.aof, self.ang, self.vel)
-# 					self.projectiles.append([projectile[0], projectile[1]])
 					self.shotRequested = False	
 		if self.aof < 90:
 			self.aof = 90
@@ -472,7 +475,6 @@ def test():
 				cannon.center[0] = 0
 		if keysHeld[32]:
 			if cannon.shotRequested == False:
-				print "Shot Requested"
 				cannon.shotRequested = True
 
 		if keysHeld[27]:
