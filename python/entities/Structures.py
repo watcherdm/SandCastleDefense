@@ -53,17 +53,24 @@ class Structure(EventedSprite):
 			self.on_buildfinish(builder)
 
 	def adjustToLayer(self):
-		self.rect.top = self.rect.top - ((self.layer - 1) * 10)
+		self.rect.top = self.orig_rect.top - ((self.layer - 1) * 10)
 
 	def update(self, events):
 		EventedSprite.update(self, events)
+		self.adjustToLayer()
 		if self.health == 0:
 			self.kill()
 		self.debug_draw()
 
 	def kill(self):
-		self.world.map.tiles.get_at()
+		pos = self.rect.center
+		height = self.height
 		EventedSprite.kill(self)
+		sprites = self.world.map.tiles.get_sprites_at(pos);
+		for sprite in sprites:
+			if sprite.layer > 0:
+				self.world.map.tiles.change_layer(sprite, sprite.layer - 1)
+				sprite.height -= height
 
 
 class JoiningStructure(Structure):

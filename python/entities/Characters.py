@@ -65,7 +65,6 @@ class Character(EventedSprite):
                 handler["method"](handler["context"], *args)
 
     def on_collide(self, collisions):
-        print str(len(collisions)) + " Collisions detected"
         return False
 
     def update(self, events):
@@ -108,7 +107,6 @@ class Character(EventedSprite):
         dvector = fromLeft, fromTop = cmp( current_destination[0] - self.rect.left, 0), cmp(current_destination[1] - self.rect.top , 0)
         x =  current_destination[0] - self.rect.left
         y =  current_destination[1] - self.rect.top
-        print x, y
         if self.rect.left == current_destination[0]:
             fromLeft = 0
         if self.rect.top == current_destination[1]:
@@ -123,10 +121,8 @@ class Character(EventedSprite):
             return
 
         distance = sqrt(x ** 2 + y ** 2)
-        print distance
         if distance != 0:
             normals = x / distance, y / distance
-            print normals
             movePosition = (normals[0] * self.move_speed), (normals[1] * self.move_speed)
             self.direction = cmp(fromLeft, 0)
             newpos = self.rect.move(movePosition)
@@ -236,6 +232,7 @@ class Critter(Character):
         Character.__init__(self, type, pos)
         self.range = 50
         self.target = None
+        self.health = 20
         self._targets = []
         self.damage = 0
         self.attacking = False
@@ -260,11 +257,13 @@ class Critter(Character):
         return self._targets
 
     def update(self, events):
+        if self.health <= 0:
+            self.kill()
+            return
+
         if self.attacking == False:
             for target in self.get_targets():
-                print "Checking " + str(len(self.get_targets())) + " for range"
                 if self.in_range(target) and isinstance(target, Structure) and self.target == None:
-                    print "Target selected"
                     self.target = target
                     if self.moving:
                         self.clear_destination()
@@ -308,4 +307,4 @@ class Crab(Critter):
         self.max_health = 50
         self.move_speed = 2.5
         self.ani_speed_init = 20
-        self.damage = 1
+        self.damage = 3

@@ -98,7 +98,6 @@ def time_in_air(distance):
 
 class Cannon:
 	def __init__(self):
-		print "Initializing cannon"
 		self._targets = []
 		self.aof = 45
 		self.rof = 10
@@ -115,6 +114,7 @@ class Cannon:
 		self.projectile_radius = 2
 		self.yOrigin = pygame.display.get_surface().get_rect().height
 		self.range = 50
+		self.damage = 1
 
 	def setPosition(self, pos):
 		screen_height = pygame.display.get_surface().get_rect().height
@@ -171,7 +171,6 @@ class Cannon:
 
 
 	def angle_to_go_distance(self, distance, velocity):
-		print ' :: '.join([str(gravity), str(distance), str(velocity)])
 		rate = (gravity*distance)/(velocity**2)
 		if rate < 45 and rate > 0:
 			return to_angle(.5*asin(to_radians(rate)))
@@ -198,9 +197,10 @@ class Cannon:
 
 	def update(self, events):
 		range = self.range + self.height
-		to_attack = []
+		to_attack = None
 		for target in self.get_targets():
 			if self.in_range(target):
+				to_attack = target
 				self.ang = self.angle_to_target(target)
 				distance_x = self.distance_to(target)
 				distance = self.real_distance_to(target)
@@ -211,6 +211,7 @@ class Cannon:
 				aof = self.aof_to_target(self.vel, target)
 				self.aof = aof
 				self.shotRequested = True
+				continue
 
 		self.canvas = pygame.Surface(pygame.display.get_surface().get_size())
 		self.canvas.set_colorkey(black)
@@ -219,7 +220,11 @@ class Cannon:
 				if self.shotRequested:
 					projectile = angular_trajectory(self.get_3d_point(), self.aof, self.ang, self.vel)
 					self.projectiles.append([projectile[0], projectile[1]])
-					self.shotRequested = False	
+					self.shotRequested = False
+					if to_attack != None:
+						print "Damaging Critter"
+						to_attack.health -= self.damage
+
 		if self.ang < -180:
 			self.ang = 180
 		if self.ang > 180:
@@ -359,7 +364,6 @@ def test():
 				cannon.center[0] = 0
 		if keysHeld[32]:
 			if cannon.shotRequested == False:
-				print "Shot Requested"
 				cannon.shotRequested = True
 
 		if keysHeld[27]:
