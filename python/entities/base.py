@@ -9,6 +9,7 @@ class EventedSprite(pygame.sprite.DirtySprite):
     x2 = target.rect.center[0]
     y2 = target.rect.center[1]
     return (x1, y1), (x2, y2)
+
   def angle_between_points(self, target):
     p1, p2 = self.get_points(target)
     x1 = p1[0]

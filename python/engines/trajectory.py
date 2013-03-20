@@ -222,7 +222,6 @@ class Cannon:
 					self.projectiles.append([projectile[0], projectile[1]])
 					self.shotRequested = False
 					if to_attack != None:
-						print "Damaging Critter"
 						to_attack.health -= self.damage
 
 		if self.ang < -180:
