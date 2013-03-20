@@ -6,6 +6,10 @@ from math import sqrt
 
 BLOCKSIZE = 50
 
+images = {
+    
+}
+
 
 class Aspect(pygame.sprite.Sprite):
     def __init__(self, name = None, button = None):
@@ -34,7 +38,10 @@ class Character(EventedSprite):
         self.ani_speed_init = 30
         self.ani_speed = self.ani_speed_init
         self.ani_pos = 0
-        self.ani = load_sliced_sprites(self, BLOCKSIZE, BLOCKSIZE, 'walk/' + self.name + '_0.png')
+        if hasattr(images, self.name):
+            self.ani = images[self.name].copy()
+        else:
+            self.ani = load_sliced_sprites(self, BLOCKSIZE, BLOCKSIZE, 'walk/' + self.name + '_0.png')
         self.ani_max = len(self.ani[0]) - 1
         self.image = self.ani[0][self.ani_pos]
         self.rect = self.image.get_rect()
@@ -88,13 +95,19 @@ class Character(EventedSprite):
             if self.health < self.max_health:
                 self.health += 0.1
             self.image = self.ani[0][self.ani_pos]
+        health_bar_x = 0
+        health_bar_y = 50 - 6
+        self.image.fill(   pygame.Color('red'), (health_bar_x, health_bar_y, 50, 4))
+        self.image.fill(   pygame.Color('green'), (health_bar_x, health_bar_y, self.health * 50 / self.max_health , 4))
+
         if self.aspect != None:
             # draw the hat.
             self.aspect.rect.top = - 10
             self.aspect.rect.left = 0
             self.image.blit(self.aspect.image, self.aspect.rect.topleft)
-        self.face_direction()
+
         self.debug_draw()
+        self.face_direction()
 
     def check_collision(self):
         structures = self.world.map.tiles.get_sprites_from_layer(1)
@@ -127,9 +140,6 @@ class Character(EventedSprite):
             self.direction = cmp(fromLeft, 0)
             newpos = self.rect.move(movePosition)
             self.rect = newpos
-
-
-
 
     def move_done(self):
         return
@@ -230,6 +240,8 @@ class SelectableCharacter(Character):
 class Critter(Character):
     def __init__(self, type, pos):
         Character.__init__(self, type, pos)
+        if not hasattr(images, self.name):
+            images[self.name] = self.ani
         self.range = 50
         self.target = None
         self.health = 20

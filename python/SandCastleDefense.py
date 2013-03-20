@@ -8,7 +8,7 @@ from entities.Menu import *
 from engines.wave import *
 from entities.map import *
 
-version = '0.0.1'
+version = '0.0.2'
 SCREENHEIGHT = 600
 SCREENWIDTH = 1000
 SCREENSIZE = (SCREENWIDTH, SCREENHEIGHT)

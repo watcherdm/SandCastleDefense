@@ -6,6 +6,10 @@ from engines import trajectory
 BLOCKSIZE = 50
 BEACHCOLOR = pygame.Color(255, 222, 73, 1)
 
+images = {
+    
+}
+
 class Tile(pygame.sprite.DirtySprite):
 	layer = 0
 	x = 0
@@ -18,14 +22,20 @@ class Tile(pygame.sprite.DirtySprite):
 		self.rect = pygame.Rect((x * BLOCKSIZE, y * BLOCKSIZE, BLOCKSIZE, BLOCKSIZE));
 		self.image.fill(BEACHCOLOR)
 
+
 class Structure(EventedSprite):
+	height = 0
 	def __init__(self):
 		EventedSprite.__init__(self)
+		if hasattr(images, self.sprite_file):
+			self.states = images[self.sprite_file].copy()
+		else:
+			self.states = load_sliced_sprites(self, 50, 50, self.sprite_file)
+			images[self.sprite_file] = self.states
 		self.tile = None
 		self.ring = None
 		self.health = 0
 		self.max_health = 0 # this should be influenced by builder level
-		self.height = 0 # this should be influenced by structure type
 		self.habitation = 0 # this should be influenced by structure material?
 		self.age = 0
 		self.built = False
@@ -58,6 +68,12 @@ class Structure(EventedSprite):
 	def update(self, events):
 		EventedSprite.update(self, events)
 		self.adjustToLayer()
+
+		health_bar_x = 0
+		health_bar_y = 50 - 6
+		self.image.fill(   pygame.Color('red'), (health_bar_x, health_bar_y, 50, 4))
+		self.image.fill(   pygame.Color('green'), (health_bar_x, health_bar_y, self.health * 50 / self.max_health , 4))
+
 		if self.health == 0:
 			self.kill()
 		self.debug_draw()
@@ -72,6 +88,11 @@ class Structure(EventedSprite):
 				self.world.map.tiles.change_layer(sprite, sprite.layer - 1)
 				sprite.height -= height
 
+class Goal(Structure):
+	height = 0
+	sprite_file = "treasure.png"
+	def __init__(self):
+		Structure.__init__(self)
 
 class JoiningStructure(Structure):
 	def update(self, events):
@@ -128,11 +149,11 @@ tower_mask = {
 }
 
 class Pit(JoiningStructure):
+	sprite_file = 'tower_short.png'
+	height = 10
+	map_set = 1
 	def __init__(self):
 		Structure.__init__(self)
-		self.height = 10
-		self.map_set = 1
-		self.states = load_sliced_sprites(self, 50, 50, 'tower_short.png')
 		self.image = self.states[self.map_set][0]
 		self.rect = pygame.Rect((0, 0, BLOCKSIZE, BLOCKSIZE))
 		self.time_to_build = 300
@@ -146,11 +167,11 @@ class Pit(JoiningStructure):
 		print "Finished building pit +1 sand"
 
 class Mound(JoiningStructure):
+	height = 10
+	map_set = 0
+	sprite_file = 'tower_short.png'
 	def __init__(self):
 		Structure.__init__(self)
-		self.height = 10
-		self.map_set = 0
-		self.states = load_sliced_sprites(self, 50, 50, 'tower_short.png')
 		self.image = self.states[0][0]
 		self.rect = pygame.Rect((0, 0, BLOCKSIZE, BLOCKSIZE))
 		self.time_to_build = 300
@@ -160,11 +181,10 @@ class Mound(JoiningStructure):
 
 class ArcherTower(Structure):
 	sprite_file = "archer_tower.png"
+	height = 30
+	map_set = 0
 	def __init__(self):
 		Structure.__init__(self)
-		self.height = 40
-		self.map_set = 0
-		self.states = load_sliced_sprites(self, 50, 50, self.sprite_file)
 		self.image = self.states[0][0]
 		self.rect = pygame.Rect((0,0, BLOCKSIZE, BLOCKSIZE))
 		self.time_to_build = 300
@@ -189,11 +209,10 @@ class ArcherTower(Structure):
 
 class WizardTower(Structure):
 	sprite_file = "mage_tower.png"
+	height = 40
+	map_set = 0
 	def __init__(self):
 		Structure.__init__(self)
-		self.height = 40
-		self.map_set = 0
-		self.states = load_sliced_sprites(self, 50, 50, self.sprite_file)
 		self.image = self.states[0][0]
 		self.rect = pygame.Rect((0,0, BLOCKSIZE, BLOCKSIZE))
 		self.time_to_build = 300
@@ -218,11 +237,10 @@ class WizardTower(Structure):
 
 class BomberTower(Structure):
 	sprite_file = "bomber_tower.png"
+	height = 20
+	map_set = 0
 	def __init__(self):
 		Structure.__init__(self)
-		self.height = 40
-		self.map_set = 0
-		self.states = load_sliced_sprites(self, 50, 50, self.sprite_file)
 		self.image = self.states[0][0]
 		self.rect = pygame.Rect((0,0, BLOCKSIZE, BLOCKSIZE))
 		self.time_to_build = 300

@@ -76,7 +76,7 @@ class Button(EventedSurface):
 
 
 	def on_click(self, event):
-		print "TEST"
+		print "SHOULD NEVER GET CALLED"
 		return 1
 
 
