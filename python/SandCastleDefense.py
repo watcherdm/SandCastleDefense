@@ -1,5 +1,6 @@
 #! /usr/bin/python
 
+import cProfile
 import pygame, sys, random
 from entities.base import *
 from entities.Characters import *
@@ -102,7 +103,6 @@ def main():
 	pygame.time.set_timer(pygame.MEDFIRE, 1000 / med)
 	pygame.time.set_timer(pygame.SLOWFIRE, 1000 / slow)
 
-	healthring = HealthRing()
 	critters = pygame.sprite.OrderedUpdates()
 	world.critters = critters
 	while True:
@@ -159,28 +159,26 @@ def main():
 					eval(name).imagine_aspect(aspects[levels[name][level]])
 
 		menuring.update(events)
-		healthring.update(events)
 		for m in menuring.get_buttons():
 			m.update(events)
 		world.map.tiles.update(events)
 		selectable.update(events)
 		critters.update(events)
 		world.map.tiles.draw(sand)
-		selectable.draw(sand)
-		critters.draw(sand)
-		world.update(events)
-		for sprite in world.map.tiles.sprites():
-			if hasattr(sprite, 'cannon'):
-				sprite.cannon.draw(sand)
 		if WETSANDCOLOR.a > 0:
 			WETSANDCOLOR.a = WETSANDCOLOR.a - 1
 			oosurf = pygame.Surface((oldocean.right - oldocean.left, oldocean.bottom - oldocean.top))
 			oosurf.set_alpha(WETSANDCOLOR.a)
 			oosurf.fill(WETSANDCOLOR)
 			sand.blit(oosurf, (oldocean.left, oldocean.top))
+		selectable.draw(sand)
+		critters.draw(sand)
+		world.update(events)
+		for sprite in world.map.tiles.sprites():
+			if hasattr(sprite, 'cannon'):
+				sprite.cannon.draw(sand)
 		sand.fill(OCEANCOLOR, ocean)
 		menuring.draw(sand)
-		healthring.draw(sand)
 
 		pygame.display.flip()
 		clock.tick(60)
