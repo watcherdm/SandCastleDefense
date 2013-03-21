@@ -74,7 +74,6 @@ class Button(EventedSurface):
 		if self.ring.is_active():
 			pygame.draw.circle(surf, ENERGYCOLOR, self.rect.center, self.radius, 0)
 
-
 	def on_click(self, event):
 		print "SHOULD NEVER GET CALLED"
 		return 1
@@ -108,24 +107,6 @@ class Ring:
 			targetCenter = (self.rect.width / 2, self.rect.height / 2)
 			self.center = (self.left + (targetCenter[0]),  self.top + (targetCenter[1]))
 			self.radius = self.rect.width / 2
-
-
-
-class HealthRing(Ring):
-	def draw(self, surf):
-		if self.target == None or self.rect == None:
-			return
-		pygame.draw.circle(surf, pygame.Color('black'), self.center, self.radius, 4)
-		pygame.draw.arc(surf, LIFECOLOR, self.rect, radians(270), radians(self.get_angle() - 270), 4)
-
-	def update(self, events):
-		if self.world.has_selected():
-			self.target = self.world.get_selected()
-		if self.target == None:
-			return
-		Ring.update(self, events)
-		self.rect = self.rect.inflate(20, 20)
-		self.radius = self.rect.width / 2
 
 
 class StructureRing(Ring):
@@ -296,7 +277,6 @@ class LightningTowerButton(StructureButton):
 		self.project = Project('lightningtower')
 		structure = BomberTower()
 		self.project.set_structure(structure)
-		StructureButton.on_click(self, event)
 		if self.world.has_selected():
 			self.world.get_selected().set_project(self.project)
 

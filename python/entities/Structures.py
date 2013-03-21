@@ -194,6 +194,8 @@ class ArcherTower(Structure):
 		self.cannon.world = self.world
 		self.cannon.fireTrigger = pygame.FASTFIRE
 		self.cannon.height = self.height
+		self.cannon.damage = 5
+
 	def update(self, events):
 		Structure.update(self, events)
 		center = self.rect.center
@@ -222,6 +224,7 @@ class WizardTower(Structure):
 		self.cannon.world = self.world
 		self.cannon.fireTrigger = pygame.MEDFIRE
 		self.cannon.height = self.height
+		self.cannon.damage = 10
 	def update(self, events):
 		Structure.update(self, events)
 		center = self.rect.center
@@ -249,6 +252,7 @@ class BomberTower(Structure):
 		self.cannon = trajectory.Cannon()
 		self.cannon.world = self.world
 		self.cannon.fireTrigger = pygame.SLOWFIRE
+		self.cannon.damage = 20
 	def update(self, events):
 		Structure.update(self, events)
 		center = self.rect.center
