@@ -218,8 +218,8 @@ class Cannon:
 		for event in events:
 			if event.type == self.fireTrigger:
 				if self.shotRequested:
-					projectile = angular_trajectory(self.get_3d_point(), self.aof, self.ang, self.vel)
-					self.projectiles.append([projectile[0], projectile[1]])
+					# projectile = angular_trajectory(self.get_3d_point(), self.aof, self.ang, self.vel)
+					# self.projectiles.append([projectile[0], projectile[1]])
 					self.shotRequested = False
 					if to_attack != None:
 						to_attack.health -= self.damage

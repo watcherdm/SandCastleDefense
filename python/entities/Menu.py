@@ -217,6 +217,9 @@ class StructureButton(Button):
 	def on_mouseout(self, event):
 		self.disable()
 
+	def on_click(self, event):
+		self.world._supress = True
+
 	def state(self):
 		return 'enabled' if self.enabled == True else 'disabled'
 
@@ -249,6 +252,7 @@ class FireTowerButton(StructureButton):
 		StructureButton.__init__(self, 'fire')
 
 	def on_click(self, event):
+		StructureButton.on_click(self, event)
 		if self.world.has_selected():
 			if not self.world.get_selected().has_project():
 				self.project = Project('firetower')
@@ -262,6 +266,7 @@ class IceTowerButton(StructureButton):
 		StructureButton.__init__(self, 'ice')
 
 	def on_click(self, event):
+		StructureButton.on_click(self, event)
 		self.project = Project('icetower')
 		structure = WizardTower()
 		self.project.set_structure(structure)
@@ -274,6 +279,7 @@ class LightningTowerButton(StructureButton):
 		StructureButton.__init__(self, 'lightning')
 
 	def on_click(self, event):
+		StructureButton.on_click(self, event)
 		self.project = Project('lightningtower')
 		structure = BomberTower()
 		self.project.set_structure(structure)
@@ -293,6 +299,7 @@ class PitButton(StructureButton):
 		print "Mouse up"
 
 	def on_click(self, event):
+		StructureButton.on_click(self, event)
 		print "Starting Pit Project"
 		self.project = Project('pit')
 		self.project.set_structure(Pit())
@@ -307,6 +314,7 @@ class MoundButton(StructureButton):
 		StructureButton.__init__(self, '')
 
 	def on_click(self, event):
+		StructureButton.on_click(self, event)
 		self.project = Project('mound')
 		self.project.set_structure(Mound())
 		StructureButton.on_click(self, event)
