@@ -55,6 +55,7 @@ class Structure(EventedSprite):
 
 	def add_to_world(self):
 		self.world.map.addStructure(self)
+		self.world.structures.add(self)
 		
 	def on_buildfinish(self, builder, position):
 		self.set_position(position)
@@ -85,7 +86,8 @@ class Structure(EventedSprite):
 
 		if self.health <= 0:
 			self.kill()
-		self.debug_draw()
+		if self.world.debug:
+			self.debug_draw()
 
 	def kill(self):
 		pos = self.rect.center

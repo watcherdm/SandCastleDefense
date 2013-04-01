@@ -19,7 +19,6 @@ BEACHCOLOR = pygame.Color(255, 222, 73, 1)
 OCEANCOLOR = pygame.Color(73, 130, 255)
 WETSANDCOLOR = pygame.Color(94,82,69, 50)
 WAVEPRECISION = 100
-currentLevel = 0
 
 g = {
 	"world": None,
@@ -28,7 +27,9 @@ g = {
 
 def startGame():
 	world = World(SCREENSIZE)
+	world.debug = False
 	world.state = 1
+	world.currentLevel = 0
 
 def exit():
 	sys.exit()
@@ -78,6 +79,7 @@ def init():
 	world = World(SCREENSIZE)	
 	world.wave = get_line(world.i, WAVEPRECISION)
 	world.wave_count = 0
+	world.structures = pygame.sprite.OrderedUpdates()
 
 	menuitems = {
 		"fire": FireTowerButton(), 
@@ -92,6 +94,27 @@ def init():
 		"knight": Aspect("knight", menuitems['fire']),
 		"pirate": Aspect("pirate", menuitems['lit'])
 	}
+
+	world.gameLevels = [
+		{
+			"tiles": 20,
+			"waves": 4,
+			"critters": ["Crab","Turtle", "Bully"],
+			"completed": 0
+		},
+		{
+			"tiles": 40,
+			"waves": 5,
+			"critters": ["Crab", "Turtle", "Eel", "Bully"],
+			"completed": 0
+		},
+		{
+			"tiles": 72,
+			"waves": 6,
+			"critters": ["Crab", "Turtle", "Eel", "Seagull", "Bully"],
+			"completed": 0
+		}
+	]
 
 	world.levels = {
 		"steve": {
@@ -163,16 +186,27 @@ def initCritters():
 
 def runLevel(currentLevel):
 	world = World(SCREENSIZE)
+	level = world.gameLevels[currentLevel]
 	world.map.dirtyTiles()
 	events = pygame.event.get()
 	#adjust tide
-	if world.wave_count == len(world.wave) / 2:
-		if len(world.critters.sprites()) < world.critter_level:
+	points_per_wave = (level["tiles"] / level["waves"])
+	levels_in_play = (level["completed"] + 1)
+	wave_points = points_per_wave * levels_in_play
+	if len(world.structures.sprites()) >=  wave_points:
+		#send wave
+		points = wave_points
+		while points > 0:
 			critter = Crab(world.map.getRandomTile())
 			world.critters.add(critter)
+			points-= critter.cost
 		for critter in world.critters:
 			critter.update(events)
-		# place some critters
+		level["completed"] += 1
+	if level["completed"] > level["waves"] + 1:
+		#level completed
+		world.currentLevel += 1
+		print "Level Completed, moving on"
 
 	if world.wave_count >= len(world.wave):
 		world.wave_count = 0
@@ -241,7 +275,7 @@ def main():
 		if world.state == 1: #initialize game
 			init()
 		if world.state == 2: #play level
-			runLevel(currentLevel)
+			runLevel(world.currentLevel)
 		if world.state == 3: #pause level
 			showPause()
 		if world.state == 99:

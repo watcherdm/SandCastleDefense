@@ -106,7 +106,8 @@ class Character(EventedSprite):
             self.aspect.rect.left = 0
             self.image.blit(self.aspect.image, self.aspect.rect.topleft)
 
-        self.debug_draw()
+        if self.world.debug:
+            self.debug_draw()
         self.face_direction()
 
     def check_collision(self):
@@ -242,7 +243,7 @@ class Critter(Character):
         Character.__init__(self, type, pos)
         if not hasattr(images, self.name):
             images[self.name] = self.ani
-        self.range = 50
+        self.range = 150
         self.target = None
         self.health = 20
         self._targets = []
@@ -261,6 +262,8 @@ class Critter(Character):
     def on_collide(self, collisions):
         if self.target in collisions:
             self.attacking = True
+        else:
+            self.target = collisions[0]
         return False
 
     def get_targets(self):
@@ -326,3 +329,4 @@ class Crab(Critter):
         self.move_speed = 2.5
         self.ani_speed_init = 20
         self.damage = 3
+        self.cost = 0.5
