@@ -280,6 +280,12 @@ class Critter(Character):
                     if self.moving:
                         self.clear_destination()
                     self.set_destination(self.target.rect.topleft)
+            if self.target == None:
+                self.target = self.world.get_goal()
+                if self.moving:
+                    self.clear_destination()
+                self.set_destination(self.target.rect.topleft)
+
         else:
             self.target.health -= self.damage
             if self.target.health == 0:

@@ -203,12 +203,9 @@ class Physics:
 
 class Cannon:
 	def __init__(self):
-<<<<<<< HEAD
 		print "Initializing cannon"
 		self.projectile_type = Cannonball
 		self.physics_variables = Physics()
-=======
->>>>>>> 4e764d1... Structures and Critters destroy each other now.
 		self._targets = []
 		self.inclination = 0
 		self.azimuth = 180

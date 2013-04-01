@@ -25,6 +25,7 @@ class Tile(pygame.sprite.DirtySprite):
 
 class Structure(EventedSprite):
 	height = 0
+	layer = 0
 	def __init__(self):
 		EventedSprite.__init__(self)
 		if hasattr(images, self.sprite_file):
@@ -32,18 +33,35 @@ class Structure(EventedSprite):
 		else:
 			self.states = load_sliced_sprites(self, 50, 50, self.sprite_file)
 			images[self.sprite_file] = self.states
+		self.init_sprite()
 		self.tile = None
 		self.ring = None
-		self.health = 0
-		self.max_health = 0 # this should be influenced by builder level
 		self.habitation = 0 # this should be influenced by structure material?
 		self.age = 0
 		self.built = False
 		self.world = World(pygame.display.get_surface().get_size())
 		self.rendered = False
 
-	def on_buildfinish(self, builder):
-		print builder.name + " finished building " + self.__class__.__name__
+	def init_sprite(self):
+		self.image = self.states[0][0]
+		self.rect = pygame.Rect((0,0, BLOCKSIZE, BLOCKSIZE))
+
+
+	def set_position(self, position):
+		if self.rect != None and position != None:
+			self.rect.topleft = position
+		self.orig_rect = pygame.Rect(self.rect)
+		# determine vertical offset by height
+
+	def add_to_world(self):
+		self.world.map.addStructure(self)
+		
+	def on_buildfinish(self, builder, position):
+		self.set_position(position)
+		self.add_to_world()
+		self.adjustToLayer()
+		self.health = self.max_health
+		builder.finish_project()
 
 	def build(self, builder, position):
 		if self.time_to_build >= builder.time_building:
@@ -51,16 +69,7 @@ class Structure(EventedSprite):
 			self.max_health = self.time_to_build
 			builder.time_building += builder.build_speed
 		else:
-			if self.rect != None and position != None:
-				self.rect.topleft = position
-			# determine vertical offset by height
-			self.health = self.time_to_build
-			self.max_health = self.time_to_build
-			self.world.map.addStructure(self)
-			self.orig_rect = pygame.Rect(self.rect)
-			self.adjustToLayer()
-			builder.finish_project()
-			self.on_buildfinish(builder)
+			self.on_buildfinish(builder, position)
 
 	def adjustToLayer(self):
 		self.rect.top = self.orig_rect.top - ((self.layer - 1) * 10)
@@ -71,10 +80,10 @@ class Structure(EventedSprite):
 
 		health_bar_x = 0
 		health_bar_y = 50 - 6
-		self.image.fill(   pygame.Color('red'), (health_bar_x, health_bar_y, 50, 4))
-		self.image.fill(   pygame.Color('green'), (health_bar_x, health_bar_y, self.health * 50 / self.max_health , 4))
+		self.image.fill( pygame.Color('red'), (health_bar_x, health_bar_y, 50, 4))
+		self.image.fill( pygame.Color('green'), (health_bar_x, health_bar_y, self.health * 50 / self.max_health , 4))
 
-		if self.health == 0:
+		if self.health <= 0:
 			self.kill()
 		self.debug_draw()
 
@@ -89,10 +98,19 @@ class Structure(EventedSprite):
 				sprite.height -= height
 
 class Goal(Structure):
-	height = 0
 	sprite_file = "treasure.png"
+	height = 30
+	time_to_build = 500
+	max_health = 500
+	map_set = 0
+
 	def __init__(self):
 		Structure.__init__(self)
+		self.health = self.max_health
+
+	def kill(self):
+		self.world.end_game()
+
 
 class JoiningStructure(Structure):
 	def update(self, events):
@@ -162,7 +180,8 @@ class Pit(JoiningStructure):
 		self.rect.top = self.rect.top + ((self.layer - 1) * 10)
 
 
-	def on_buildfinish(self, builder):
+	def on_buildfinish(self, builder, position):
+		JoiningStructure.on_buildfinish(self, builder, position)
 		builder.add_sand(self.health)
 		print "Finished building pit +1 sand"
 
@@ -176,94 +195,63 @@ class Mound(JoiningStructure):
 		self.rect = pygame.Rect((0, 0, BLOCKSIZE, BLOCKSIZE))
 		self.time_to_build = 300
 
-	def on_buildfinish(self, builder):
+	def on_buildfinish(self, builder, position):
+		JoiningStructure.on_buildfinish(self, builder, position)
 		builder.spend_sand(self.health)
 
-class ArcherTower(Structure):
+class Tower(Structure):
+	"""
+	Tower abstract class handles cannon creation and range establishment
+	"""
+	def __init__(self):
+		Structure.__init__(self)
+		self.create_cannon()
+
+	def create_cannon(self):
+		self.cannon = trajectory.Cannon()
+		self.cannon.world = self.world
+		self.cannon.height = self.height
+		self.cannon.damage = self.damage
+		self.cannon.fireTrigger = self.rof
+		
+	def update(self, events):
+		Structure.update(self, events)
+		center = self.rect.center
+		if hasattr(self, "orig_rect"):
+			center = self.orig_rect.center
+		self.cannon.setPosition(center)
+		self.cannon.height = self.height
+		for event in events:
+			if event.type == pygame.KEYDOWN:
+				self.cannon.shotRequested = True
+		self.cannon.update(events)
+
+class ArcherTower(Tower):
+	rof = pygame.FASTFIRE
 	sprite_file = "archer_tower.png"
 	height = 30
 	map_set = 0
-	def __init__(self):
-		Structure.__init__(self)
-		self.image = self.states[0][0]
-		self.rect = pygame.Rect((0,0, BLOCKSIZE, BLOCKSIZE))
-		self.time_to_build = 300
-		self.rate_of_fire = 10
-		self.attack_power = 10
-		self.cannon = trajectory.Cannon()
-		self.cannon.world = self.world
-		self.cannon.fireTrigger = pygame.FASTFIRE
-		self.cannon.height = self.height
-		self.cannon.damage = 5
+	time_to_build = 200
+	max_health = 200
+	damage = 5
 
-	def update(self, events):
-		Structure.update(self, events)
-		center = self.rect.center
-		if hasattr(self, "orig_rect"):
-			center = self.orig_rect.center
-		self.cannon.setPosition(center)
-		self.cannon.height = self.height
-		for event in events:
-			if event.type == pygame.KEYDOWN:
-				self.cannon.shotRequested = True
-		self.cannon.update(events)
-
-
-class WizardTower(Structure):
+class WizardTower(Tower):
+	rof = pygame.MEDFIRE
 	sprite_file = "mage_tower.png"
 	height = 40
 	map_set = 0
-	def __init__(self):
-		Structure.__init__(self)
-		self.image = self.states[0][0]
-		self.rect = pygame.Rect((0,0, BLOCKSIZE, BLOCKSIZE))
-		self.time_to_build = 300
-		self.rate_of_fire = 10
-		self.attack_power = 10
-		self.cannon = trajectory.Cannon()
-		self.cannon.world = self.world
-		self.cannon.fireTrigger = pygame.MEDFIRE
-		self.cannon.height = self.height
-		self.cannon.damage = 10
-	def update(self, events):
-		Structure.update(self, events)
-		center = self.rect.center
-		if hasattr(self, "orig_rect"):
-			center = self.orig_rect.center
-		self.cannon.setPosition(center)
-		self.cannon.height = self.height
-		for event in events:
-			if event.type == pygame.KEYDOWN:
-				self.cannon.shotRequested = True
-		self.cannon.update(events)
+	time_to_build = 300
+	max_health = 300
+	damage = 5
 
-
-class BomberTower(Structure):
+class BomberTower(Tower):
+	rof = pygame.SLOWFIRE
 	sprite_file = "bomber_tower.png"
 	height = 20
 	map_set = 0
-	def __init__(self):
-		Structure.__init__(self)
-		self.image = self.states[0][0]
-		self.rect = pygame.Rect((0,0, BLOCKSIZE, BLOCKSIZE))
-		self.time_to_build = 300
-		self.rate_of_fire = 10
-		self.attack_power = 10
-		self.cannon = trajectory.Cannon()
-		self.cannon.world = self.world
-		self.cannon.fireTrigger = pygame.SLOWFIRE
-		self.cannon.damage = 20
-	def update(self, events):
-		Structure.update(self, events)
-		center = self.rect.center
-		if hasattr(self, "orig_rect"):
-			center = self.orig_rect.center
-		self.cannon.setPosition(center)
-		self.cannon.height = self.height
-		for event in events:
-			if event.type == pygame.KEYDOWN:
-				self.cannon.shotRequested = True
-		self.cannon.update(events)
+	time_to_build = 300
+	max_health = 300
+	damage = 5
 
 class Stairs(Structure):
 	sprite_file = "stairs_left.png"

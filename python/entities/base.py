@@ -56,16 +56,16 @@ class EventedSprite(pygame.sprite.DirtySprite):
   def mouseover(self):
     pos = pygame.mouse.get_pos()
     if self.rect.collidepoint(pos):
-      self.on_mouseover()
       self.mouse['over'] = True
+      self.on_mouseover()
     
   def click(self, event):
     self.on_click(event)
 
   def mousedown(self, event):
     if self.mouse['over']:
-      self.on_mousedown(event)
       self.mouse['down'] = True
+      self.on_mousedown(event)
 
   def mouseup(self, event):
     if self.mouse['over']:
@@ -110,22 +110,34 @@ class World(pygame.Surface, EventedSprite):
   _selected = None
   _instance = None
   _selection_changed = False
-  structures = None  
+  structures = None
+  state = 0
+  initialized = False
+
   def __new__(cls, *args, **kwargs):
     if not cls._instance:
+      print "creating new world"
       cls._instance = super(World, cls).__new__(
                           cls, *args, **kwargs)
     return cls._instance
 
+  def end_game(self):
+    self.state = 99
+
   def __init__(self, size):
+    if self.initialized:
+      return
     pygame.Surface.__init__(self, size)
+    EventedSprite.__init__(self)
     self.selected = False
-    self.mouse = {
-      'down': False,
-      'over': False
-    }
     self._supress = False
     self.rect = self.get_rect()
+    self.initialized = True
+  def set_goal(self, goal):
+    self._goal = goal
+
+  def get_goal(self):
+    return self._goal
 
   def stop_event_propogation(self):
     self._supress = True
@@ -155,6 +167,8 @@ class World(pygame.Surface, EventedSprite):
     self.checkState(events)
 
   def on_click(self, event):
+    if self._supress:
+      return      
     if self._selected != None:
       self._selected.selected_update(event)
     self._selection_changed = False
