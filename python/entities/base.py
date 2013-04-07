@@ -1,8 +1,10 @@
 import pygame, os, sys
 
 RED = pygame.Color(255, 0, 0, 255)
+ASSETDIR = "assets/images/"
 
 class EventedSprite(pygame.sprite.DirtySprite):
+  collide_method = "RECT"
   def get_points(self, target):
     x1 = self.rect.center[0]
     y1 = self.rect.center[1]
@@ -42,6 +44,15 @@ class EventedSprite(pygame.sprite.DirtySprite):
     }
 
   def update(self, events):
+    if self.collide_method == "RECT":
+      method = pygame.sprite.collide_rect
+    elif self.collide_method == "CIRC":
+      method = pygame.sprite.collide_circle
+
+    sprites = pygame.sprite.spritecollide(self, self.world.map.tiles, False, method)
+    for sprite in self.world.map.tiles.get_sprites_at(self.rect.center):
+      sprite.dirty = 1
+
     self.checkState(events)
 
   def mousemove(self, event):
@@ -196,7 +207,7 @@ class EventedShape(pygame.Surface, EventedSprite):
 
 
 def load_image(name, colorkey=None):
-  fullname = os.path.join(name)
+  fullname = os.path.join( ASSETDIR + name)
   try:
     image = pygame.image.load(fullname)
   except pygame.error, message:
@@ -204,7 +215,7 @@ def load_image(name, colorkey=None):
     raise SystemExit, message
   return image, image.get_rect()
 
-def load_sliced_sprites(self, w, h, filename):
+def load_sliced_sprites(w, h, filename):
   '''
   Specs :
     Master can be any height.
@@ -213,7 +224,7 @@ def load_sliced_sprites(self, w, h, filename):
   Assuming you ressources directory is named "ressources"
   '''
   images = []
-  master_image = pygame.image.load(os.path.join('.', filename)).convert_alpha()
+  master_image = pygame.image.load(os.path.join('.', ASSETDIR + filename)).convert_alpha()
 
   master_width, master_height = master_image.get_size()
   for j in xrange(int(master_height/h)):

@@ -20,11 +20,6 @@ OCEANCOLOR = pygame.Color(73, 130, 255)
 WETSANDCOLOR = pygame.Color(94,82,69, 50)
 WAVEPRECISION = 100
 
-g = {
-	"world": None,
-	"sand": None
-}
-
 def startGame():
 	world = World(SCREENSIZE)
 	world.debug = False
@@ -144,12 +139,12 @@ def init():
 	loadPlayer(Jenai, (100, 100))
 	loadPlayer(Steve, (100, 300))
 	loadMusic()
-	sandmap = Map(world, 'maps/allsand.map')
+	sandmap = Map(world, 'assets/maps/allsand.map')
 
 	world.menuring = MenuRing()
-	fast = 10
-	med = 5
-	slow = 2
+	fast = 9
+	med = 6
+	slow = 3
 	initialPosition = (400, 200)
 	world.critter_level = 5
 	pygame.FASTFIRE = 25
@@ -165,7 +160,7 @@ def init():
 	world.state = 2
 
 def loadMusic():
-	pygame.mixer.music.load('sounds/music.wav')
+	pygame.mixer.music.load('assets/sounds/music.wav')
 	pygame.mixer.music.play(100)
 
 def stopMusic():
@@ -187,15 +182,14 @@ def initCritters():
 def runLevel(currentLevel):
 	world = World(SCREENSIZE)
 	level = world.gameLevels[currentLevel]
-	world.map.dirtyTiles()
 	events = pygame.event.get()
 	#adjust tide
 	points_per_wave = (level["tiles"] / level["waves"])
 	levels_in_play = (level["completed"] + 1)
-	wave_points = points_per_wave * levels_in_play
+	wave_points = (points_per_wave * levels_in_play)
 	if len(world.structures.sprites()) >=  wave_points:
 		#send wave
-		points = wave_points
+		points = wave_points + len(world.map.tiles.get_sprites_from_layer(1))
 		while points > 0:
 			critter = Crab(world.map.getRandomTile())
 			world.critters.add(critter)
@@ -211,7 +205,7 @@ def runLevel(currentLevel):
 	if world.wave_count >= len(world.wave):
 		world.wave_count = 0
 		world.wave = get_line(world.wave_count + 1, WAVEPRECISION)
-		pygame.mixer.Sound("sounds/oceanwave.wav").play()
+		pygame.mixer.Sound("assets/sounds/oceanwave.wav").play()
 		# start a sound
 	
 	world.hl_block.update(events)
@@ -231,9 +225,9 @@ def runLevel(currentLevel):
 	world.menuring.update(events)
 	for m in world.menuring.get_buttons():
 		m.update(events)
-	world.map.tiles.update(events)
 	world.selectable.update(events)
 	world.critters.update(events)
+	world.map.tiles.update(events)
 	world.map.tiles.draw(world.sand)
 	world.hl_block.draw(world.sand)
 	if WETSANDCOLOR.a > 0:
@@ -263,8 +257,7 @@ def main():
 	pygame.init()
 	pygame.display.set_caption('Sand Castle Defense ' + version)
 	sand = pygame.display.set_mode(SCREENSIZE)
-	g["world"] = World(SCREENSIZE)
-	world = g["world"]
+	world = World(SCREENSIZE)
 	world.sand = sand
 	world.i = 1
 	world.clock = pygame.time.Clock()
@@ -289,6 +282,11 @@ def main():
 
 
 def build_ocean(wave_point, tide_level=.5):
+	# images = load_sliced_sprites(100, 100, 'wavetip.png')
+	# wavetip = pygame.sprite.Sprite()
+
+	# print len(images)
+	# print len(images[0])
 	oceanbase = 100
 	oceanrange = 100
 	waveheight = (oceanrange * tide_level) * (1 + wave_point)

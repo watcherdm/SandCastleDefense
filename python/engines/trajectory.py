@@ -363,7 +363,7 @@ class Cannon:
 		for hit in self.hits:
 			pygame.draw.circle(self.canvas, grey, hit, 3)
 
-	def draw_debug(self):
+	def debug_draw(self):
 		p = self.to3d(self.get_3d_point(), view_angle)
 		spoint = (self.center[0], self.center[1], 0)
 		pygame.draw.circle(self.canvas, red, p, 4, 2)
@@ -371,7 +371,8 @@ class Cannon:
 		pygame.draw.circle(self.canvas, grey, self.to3d(spoint, view_angle) , self.range + self.height, 1)
 
 	def draw(self, surf):
-		self.draw_debug()
+		if self.world.debug:
+			self.debug_draw()
 		surf.blit(self.canvas, (0,0))
 
 pygame.FASTFIRE = 25
@@ -427,7 +428,6 @@ def test():
 				sys.exit()
 			if event.type == pygame.KEYDOWN:
 				keysHeld[event.key] = True
-				print event.key
 			if event.type == pygame.KEYUP:
 				keysHeld[event.key] = False
 

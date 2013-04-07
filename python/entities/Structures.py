@@ -14,14 +14,66 @@ class Tile(pygame.sprite.DirtySprite):
 	layer = 0
 	x = 0
 	y = 0
-	def __init__(self, y, x):
+	structures = pygame.sprite.OrderedUpdates()
+	def __init__(self, y, x, world):
 		pygame.sprite.DirtySprite.__init__(self)
 		self.x = x;
 		self.y = y;
 		self.image = pygame.Surface((BLOCKSIZE, BLOCKSIZE))
 		self.rect = pygame.Rect((x * BLOCKSIZE, y * BLOCKSIZE, BLOCKSIZE, BLOCKSIZE));
 		self.image.fill(BEACHCOLOR)
+		self.world = world
 
+	def make_dirty(self):
+		self.dirty = 1
+		for sprite in self.structures.sprites():
+			sprite.dirty = 1
+
+	def draw(self):
+		self.image.fill(BEACHCOLOR)
+
+	def addStructure(self, structure):
+		self.structures.add(structure)
+
+	def get_surrounding(self):
+		self.center = self.rect.center
+		surrounding = []
+		x = self.center[0] - BLOCKSIZE
+		y = self.center[1] - BLOCKSIZE
+		topleft = self.world.map.tiles.get_sprites_at((x,y))
+		if len(topleft) > 0:
+			surrounding.append(topleft[0])
+		y = self.center[1]
+		centerleft = self.world.map.tiles.get_sprites_at((x,y))
+		if len(centerleft) > 0:
+			surrounding.append(centerleft[0])
+		y = self.center[1] + BLOCKSIZE
+		bottomleft = self.world.map.tiles.get_sprites_at((x,y))
+		if len(bottomleft) > 0:
+			surrounding.append(bottomleft[0])
+		x = self.center[0]
+		y = self.center[1] - BLOCKSIZE
+		topcenter = self.world.map.tiles.get_sprites_at((x,y))
+		if len(topcenter) > 0:
+			surrounding.append(topcenter[0])
+		y = self.center[1] + BLOCKSIZE
+		bottomcenter = self.world.map.tiles.get_sprites_at((x,y))
+		if len(bottomcenter) > 0:
+			surrounding.append(bottomcenter[0])
+		x = self.center[0] + BLOCKSIZE
+		y = self.center[1] - BLOCKSIZE
+		topright = self.world.map.tiles.get_sprites_at((x,y))
+		if len(topright) > 0:
+			surrounding.append(topright[0])
+		y = self.center[1]
+		centerright = self.world.map.tiles.get_sprites_at((x,y))
+		if len(centerright) > 0:
+			surrounding.append(centerright[0])
+		y = self.center[1] + BLOCKSIZE
+		bottomright = self.world.map.tiles.get_sprites_at((x,y))
+		if len(bottomright) > 0:
+			surrounding.append(bottomright[0])
+		return surrounding
 
 class Structure(EventedSprite):
 	height = 0
@@ -31,7 +83,7 @@ class Structure(EventedSprite):
 		if hasattr(images, self.sprite_file):
 			self.states = images[self.sprite_file].copy()
 		else:
-			self.states = load_sliced_sprites(self, 50, 50, self.sprite_file)
+			self.states = load_sliced_sprites(50, 50, self.sprite_file)
 			images[self.sprite_file] = self.states
 		self.init_sprite()
 		self.tile = None
@@ -79,13 +131,14 @@ class Structure(EventedSprite):
 		EventedSprite.update(self, events)
 		self.adjustToLayer()
 
-		health_bar_x = 0
-		health_bar_y = 50 - 6
-		self.image.fill( pygame.Color('red'), (health_bar_x, health_bar_y, 50, 4))
-		self.image.fill( pygame.Color('green'), (health_bar_x, health_bar_y, self.health * 50 / self.max_health , 4))
+		if self.health < self.max_health:
+			health_bar_x = 0
+			health_bar_y = 50 - 6
+			self.image.fill( pygame.Color('red'), (health_bar_x, health_bar_y, 50, 4))
+			self.image.fill( pygame.Color('green'), (health_bar_x, health_bar_y, self.health * 50 / self.max_health , 4))
+			if self.health <= 0:
+				self.kill()
 
-		if self.health <= 0:
-			self.kill()
 		if self.world.debug:
 			self.debug_draw()
 
@@ -93,7 +146,7 @@ class Structure(EventedSprite):
 		pos = self.rect.center
 		height = self.height
 		EventedSprite.kill(self)
-		sprites = self.world.map.tiles.get_sprites_at(pos);
+		sprites = self.world.map.tiles.get_sprites_at((pos[1], pos[0]))
 		for sprite in sprites:
 			if sprite.layer > 0:
 				self.world.map.tiles.change_layer(sprite, sprite.layer - 1)
@@ -115,11 +168,24 @@ class Goal(Structure):
 
 
 class JoiningStructure(Structure):
+	def __init__(self):
+		Structure.__init__(self)
+		self.last_structure_count = 0
+
+	def add_to_world(self):
+		self.world.map.addStructure(self)
+
 	def update(self, events):
 		Structure.update(self, events)
+		sprites = self.world.map.tiles.sprites()
+		i = 0
+		if len(sprites) == self.last_structure_count:
+			return "Nothing has changed"
+		self.last_structure_count = len(sprites)
 		mask_hash = ['', '', '', '']
 		mask_item = ''
-		for structure in self.world.map.tiles.sprites():
+		for structure in sprites:
+			i += 1
 			# check tile_position to ensure get adjacents
 			if structure == self or not isinstance(structure, self.__class__):
 				continue
@@ -173,7 +239,7 @@ class Pit(JoiningStructure):
 	height = 10
 	map_set = 1
 	def __init__(self):
-		Structure.__init__(self)
+		JoiningStructure.__init__(self)
 		self.image = self.states[self.map_set][0]
 		self.rect = pygame.Rect((0, 0, BLOCKSIZE, BLOCKSIZE))
 		self.time_to_build = 300
@@ -192,7 +258,7 @@ class Mound(JoiningStructure):
 	map_set = 0
 	sprite_file = 'tower_short.png'
 	def __init__(self):
-		Structure.__init__(self)
+		JoiningStructure.__init__(self)
 		self.image = self.states[0][0]
 		self.rect = pygame.Rect((0, 0, BLOCKSIZE, BLOCKSIZE))
 		self.time_to_build = 300
@@ -211,6 +277,7 @@ class Tower(Structure):
 
 	def create_cannon(self):
 		self.cannon = trajectory.Cannon()
+		self.cannon.tower = self
 		self.cannon.world = self.world
 		self.cannon.height = self.height
 		self.cannon.damage = self.damage
@@ -237,6 +304,9 @@ class ArcherTower(Tower):
 	max_health = 200
 	damage = 5
 
+	def damage_enemy(self, target):
+		target.health -= self.damage
+
 class WizardTower(Tower):
 	rof = pygame.MEDFIRE
 	sprite_file = "mage_tower.png"
@@ -246,6 +316,13 @@ class WizardTower(Tower):
 	max_health = 300
 	damage = 5
 
+	def damage_enemy(self, target):
+		target.health -= self.damage
+		if not "move" in target.modifiers:
+			target.orig_move_speed = target.move_speed
+			target.move_speed = target.move_speed / 2
+			target.modifiers.append("move")
+
 class BomberTower(Tower):
 	rof = pygame.SLOWFIRE
 	sprite_file = "bomber_tower.png"
@@ -254,6 +331,15 @@ class BomberTower(Tower):
 	time_to_build = 300
 	max_health = 300
 	damage = 5
+	def damage_enemy(self, target):
+		splash = pygame.sprite.Sprite()
+		splash.rect = target.rect.copy()
+		splash.rect.inflate(100,100)
+		splash.radius = splash.rect.width / 2
+		splashed = pygame.sprite.spritecollide(splash, self.world.critters, False, pygame.sprite.collide_circle)
+		for i in splashed:
+			i.health -= self.damage / 2
+		target.health -= self.damage
 
 class Stairs(Structure):
 	sprite_file = "stairs_left.png"
@@ -261,7 +347,7 @@ class Stairs(Structure):
 		Structure.__init__(self)
 		self.height = 40
 		self.map_set = 0
-		self.states = load_sliced_sprites(self, 50, 50, self.sprite_file)
+		self.states = load_sliced_sprites(50, 50, self.sprite_file)
 		self.image = self.states[0][0]
 		self.rect = pygame.Rect((0,0, BLOCKSIZE, BLOCKSIZE))
 		self.time_to_build = 300

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" width="20" height="12" tilewidth="50" tileheight="50">
+ <tileset firstgid="1" name="SandCastleDefense" tilewidth="50" tileheight="50">
+  <image source="../../../../Downloads/tiles.png" width="50" height="300"/>
+  <tile id="0">
+   <properties>
+    <property name="key" value="s"/>
+    <property name="name" value="Sand"/>
+   </properties>
+  </tile>
+ </tileset>
+ <layer name="Tile Layer 1" width="20" height="12">
+  <data encoding="base64" compression="zlib">
+   eJxjZGBgYBzimBkHTW3Mgkbjw0w42KTaRS3zcLkRn1nE+JNSf1HLTBYamT3YMQANTgEV
+  </data>
+ </layer>
+</map>
