@@ -1,6 +1,5 @@
 from math import sin, pi, log
 from numpy import zeros, linspace
-from scitools.numpyutils import iseq
 
 c = 1
 L = 100
@@ -24,9 +23,9 @@ def solver0(I, f, c, L, n, dt, tstop):
     um = up.copy() # solution at t-2*dt
 
     t = 0.0
-    for i in iseq(0,n):
+    for i in range(0,n):
         u[i] = I(x[i])
-    for i in iseq(1,n-1):
+    for i in range(1,n-1):
         um[i] = u[i] + 0.5*C2*(u[i-1] - 2*u[i] + u[i+1]) + \
                 dt2*f(x[i], t)
 
@@ -35,7 +34,7 @@ def solver0(I, f, c, L, n, dt, tstop):
     while t <= tstop:
           t_old = t; t += dt
           # update all inner points:
-          for i in iseq(start=1, stop=n-1):
+          for i in range(1, n-1):
               up[i] = - um[i] + 2*u[i] + \
                       C2*(u[i-1] - 2*u[i] + u[i+1]) + \
                       dt2*f(x[i], t_old)

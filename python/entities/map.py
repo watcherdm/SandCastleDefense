@@ -20,7 +20,7 @@ class Map:
 			self.map.append([None] * l1)
 		for j in rol:
 			for i in range(l1):
-				self.map[j][i] = Tile(j, i)
+				self.map[j][i] = Tile(j, i, world)
 				self.tiles.add(self.map[j][i])
 
 	def draw(self, surf):
@@ -45,6 +45,7 @@ class Map:
 				structure.height += sprite.height
 		self.tiles.add(structure, layer = layer)
 		structure.tile = tile
+		structure.tile.addStructure(structure)
 		structure.layer = layer
 
 	def getRandomTile(self):

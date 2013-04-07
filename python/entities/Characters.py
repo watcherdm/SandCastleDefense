@@ -18,7 +18,8 @@ class Aspect(pygame.sprite.Sprite):
         self.image, self.rect = load_image(self.name + '_hat.png', -1)
 
 class Character(EventedSprite):
-
+    height = BLOCKSIZE
+    width = BLOCKSIZE
     def path_to(self, target):
         angle = self.angle_between_points(self.rect.center[0], self.rect.center[1], target.rect.center[0], target.rect.center[1])
 
@@ -41,7 +42,7 @@ class Character(EventedSprite):
         if hasattr(images, self.name):
             self.ani = images[self.name].copy()
         else:
-            self.ani = load_sliced_sprites(self, BLOCKSIZE, BLOCKSIZE, 'walk/' + self.name + '_0.png')
+            self.ani = load_sliced_sprites(self.height, self.width, 'walk/' + self.name + '_0.png')
         self.ani_max = len(self.ani[0]) - 1
         self.image = self.ani[0][self.ani_pos]
         self.rect = self.image.get_rect()
@@ -75,6 +76,13 @@ class Character(EventedSprite):
         return False
 
     def update(self, events):
+        hit_list = pygame.sprite.spritecollide(self, self.world.map.tiles, False)
+        for hit in hit_list:
+            if (hasattr(hit, "make_dirty")):
+                hit.make_dirty()
+                for t in hit.get_surrounding():
+                    t.make_dirty()
+
         self.ani_speed -= 1
         if self.ani_speed == 0:
             self.ani_speed = self.ani_speed_init
@@ -89,33 +97,36 @@ class Character(EventedSprite):
                 self.moving = False
                 self.on_collide(coll)
             self.image = self.ani[1][self.ani_pos]
+            self.face_direction()
             self._walk()
-        else:
-            # healing over time
-            if self.health < self.max_health:
-                self.health += 0.1
-            self.image = self.ani[0][self.ani_pos]
-        health_bar_x = 0
-        health_bar_y = 50 - 6
-        self.image.fill(   pygame.Color('red'), (health_bar_x, health_bar_y, 50, 4))
-        self.image.fill(   pygame.Color('green'), (health_bar_x, health_bar_y, self.health * 50 / self.max_health , 4))
+        # else:
+        #     # healing over time
+        #     if self.health < self.max_health:
+        #         self.health += 0.1
+        #     self.image = self.ani[0][self.ani_pos]
+        if self.health != self.max_health:
+            health_bar_x = 0
+            health_bar_y = self.width - 6
+            self.image.fill(   pygame.Color('red'), (health_bar_x, health_bar_y, self.width, self.height / 4))
+            self.image.fill(   pygame.Color('green'), (health_bar_x, health_bar_y, self.health * self.width / self.max_health ,  self.height / 4))
 
-        if self.aspect != None:
-            # draw the hat.
-            self.aspect.rect.top = - 10
-            self.aspect.rect.left = 0
-            self.image.blit(self.aspect.image, self.aspect.rect.topleft)
+        # if self.aspect != None:
+        #     # draw the hat.
+        #     self.aspect.rect.top = - 10
+        #     self.aspect.rect.left = 0
+        #     self.image.blit(self.aspect.image, self.aspect.rect.topleft)
 
         if self.world.debug:
             self.debug_draw()
-        self.face_direction()
 
     def check_collision(self):
         structures = self.world.map.tiles.get_sprites_from_layer(1)
-        collisions = pygame.sprite.spritecollide(self, structures, False, pygame.sprite.collide_rect)
+        collisions = pygame.sprite.spritecollide(self, structures, False, pygame.sprite.collide_circle)
         return collisions
 
     def _walk(self):
+        if len(self.destinations) == 0:
+            return
         current_destination = self.destinations[0]
 
         dvector = fromLeft, fromTop = cmp( current_destination[0] - self.rect.left, 0), cmp(current_destination[1] - self.rect.top , 0)
@@ -135,12 +146,14 @@ class Character(EventedSprite):
             return
 
         distance = sqrt(x ** 2 + y ** 2)
-        if distance != 0:
+        if distance > self.move_speed:
             normals = x / distance, y / distance
             movePosition = (normals[0] * self.move_speed), (normals[1] * self.move_speed)
             self.direction = cmp(fromLeft, 0)
             newpos = self.rect.move(movePosition)
             self.rect = newpos
+        else:
+            self.rect.topleft = current_destination
 
     def move_done(self):
         return
@@ -149,7 +162,6 @@ class Character(EventedSprite):
         self.destinations = []
 
     def set_destination(self, position):
-        self.ani_speed_init = 10
         self.moving = True
         self.destinations.append(((position[0] / BLOCKSIZE) * BLOCKSIZE, (position[1] / BLOCKSIZE) * BLOCKSIZE))
 
@@ -207,11 +219,17 @@ class SelectableCharacter(Character):
         self.select()
 
     def selected_update(self, event):
-        if not self.world._supress:
-            if self.has_project() and not self.project.has_position():
+        if self.has_project():
+            print "Has project"
+            if not self.project.new and not self.project.has_position():
+                print "Not new project, set position"
                 self.project.set_position(event.pos)
-            elif not self.building:
                 self.set_destination(event.pos)
+            else:
+                print "New project, mark not new"
+                self.project.new = False
+        elif not self.building:
+            self.set_destination(event.pos)
 
     def set_destination(self, position):
         if not self.building:
@@ -250,6 +268,11 @@ class Critter(Character):
         self.damage = 0
         self.attacking = False
 
+    def get_distance(self, target):
+        x = target.rect.center[0] - self.rect.center[0]
+        y = target.rect.center[1] - self.rect.center[1]
+        return sqrt(x ** 2 + y ** 2)
+
     def in_range(self, target):
         # In general, x and y must satisfy (x-center_x)^2 + (y - center_y)^2 < radius^2
         x = target.rect.center[0]
@@ -260,6 +283,8 @@ class Critter(Character):
         return pow(x - cx, 2) + pow(y - cy, 2) < pow(r, 2)
 
     def on_collide(self, collisions):
+        for collision in collisions:
+            collision.dirty = 1
         if self.target in collisions:
             self.attacking = True
         else:
@@ -273,32 +298,45 @@ class Critter(Character):
 
     def update(self, events):
         if self.health <= 0:
+            Character.update(self, events)
             self.kill()
             return
 
         if self.attacking == False:
+            print "Not Attacking"
+            distance = 1000
+            closest_target = None
             for target in self.get_targets():
-                if self.in_range(target) and isinstance(target, Structure) and self.target == None:
-                    self.target = target
-                    if self.moving:
-                        self.clear_destination()
+                print "Examining possible target"
+                if self.in_range(target) and isinstance(target, Structure):
+                    print "Found target in range"
+                    if self.get_distance(target) < distance:
+                        distance = self.get_distance(target)
+                        closest_target = target
+                self.target = closest_target
+                if distance > 0:
+                    self.moving = True
+                if closest_target != None and self.moving:
+                    self.clear_destination()
                     self.set_destination(self.target.rect.topleft)
+
             if self.target == None:
+                print "No target found to attack aim at goal"
                 self.target = self.world.get_goal()
                 if self.moving:
                     self.clear_destination()
                 self.set_destination(self.target.rect.topleft)
 
+
         else:
+            print "Attacking"
             self.target.health -= self.damage
-            if self.target.health == 0:
+            if self.target.health <= 0:
                 self.target = None
                 self.attacking = False
+                self.moving = True
 
         Character.update(self, events)
-
-        if self.target == None and self.moving == False:
-            self.set_destination(self.world.map.getRandomTile())
 
 
 class Jenai(SelectableCharacter):
@@ -307,7 +345,7 @@ class Jenai(SelectableCharacter):
         self.health = 200
         self.max_health = 200
         self.build_speed = 5
-        self.move_speed = 2
+        self.move_speed = 5
         self.ani_speed_init = 30
         self.add_sand(10000)
 
@@ -317,16 +355,19 @@ class Steve(SelectableCharacter):
         self.health = 200
         self.max_health = 200
         self.build_speed = 3.75
-        self.move_speed = 2.5
-        self.ani_speed_init = 20
+        self.move_speed = 5.2
+        self.ani_speed_init = 30
         self.add_sand(10000)
 
 class Crab(Critter):
+    height = 16
+    width = 16
     def __init__(self, pos):
         Critter.__init__(self, 'crab', pos)
         self.health = 50
         self.max_health = 50
-        self.move_speed = 2.5
+        self.move_speed = 10
+        self.modifiers = []
         self.ani_speed_init = 20
         self.damage = 3
         self.cost = 0.5

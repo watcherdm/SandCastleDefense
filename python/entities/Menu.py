@@ -42,19 +42,36 @@ class HighlightBlock(EventedSurface):
 		self.rect = self.get_rect()
 		self.bs = 50
 		self.block_rect = None
+		self.last_tile = None
+		self.tile = None
 
 	def on_mousemove(self, event):
-
 		pos = ((event.pos[0] / self.bs) * self.bs, (event.pos[1] / self.bs) * self.bs)
-		top = pos[1]
-		left = pos[0]
-		bottom = self.bs
-		right = self.bs
+		top = pos[1] + 1
+		left = pos[0] + 1
+		bottom = self.bs - 2
+		right = self.bs - 2
 		self.block_rect = pygame.Rect((left, top, right, bottom))
+		center = self.block_rect.center
+		self.last_tile = self.tile
+		self.tile = self.world.map.tiles.get_sprites_at(self.block_rect.center)[0]
+		self.tile.make_dirty()
+		if self.tile != None:
+			for t in self.tile.get_surrounding():
+				t.make_dirty()
+			if self.block_rect:
+				pygame.draw.rect(self.tile.image, HIGHLIGHTCOLOR, self.block_rect, 2)
+			self.tile.make_dirty()
+		for t in self.tile.get_surrounding():
+			t.make_dirty()
+
+	def update(self, events):
+		EventedSurface.update(self, events)
 
 	def draw(self, surf):
-		if self.block_rect:
-			pygame.draw.rect(surf, HIGHLIGHTCOLOR, self.block_rect, 3)
+		tile = self.tile
+		if self.last_tile != None:
+			self.last_tile.make_dirty()
 
 
 class Button(EventedSurface):
@@ -73,21 +90,24 @@ class Button(EventedSurface):
 			return
 		if self.ring.is_active():
 			pygame.draw.circle(surf, ENERGYCOLOR, self.rect.center, self.radius, 0)
+		self.world.map.tiles
 
 	def on_click(self, event):
 		print "SHOULD NEVER GET CALLED"
 		return 1
 
 
-class Ring:
+class Ring(EventedSurface):
 	value = 0
+	radius = 50
+	collide_method = "CIRC"
 	def __init__(self, target = None):
+		EventedSurface.__init__(self, (self.radius * 2, self.radius * 2))
 		self.world = World(pygame.display.get_surface().get_size())
 		self.target = target
 		self.alpha = 128
 		self.value = 0
 		self.max = 0
-		self.rect = None
 
 	def get_angle(self):
 		return (self.value * 360) / self.max
@@ -98,6 +118,7 @@ class Ring:
 		return (x, y)
 
 	def update(self, events):
+		EventedSurface.update(self, events)
 		if self.target != None:
 			self.rect = self.target.rect
 			self.value = self.target.health
@@ -107,6 +128,12 @@ class Ring:
 			targetCenter = (self.rect.width / 2, self.rect.height / 2)
 			self.center = (self.left + (targetCenter[0]),  self.top + (targetCenter[1]))
 			self.radius = self.rect.width / 2
+			tile = self.world.map.tiles.get_sprites_at(self.rect.center)[0]
+			tile.make_dirty()
+			for t in tile.get_surrounding():
+				t.make_dirty()
+
+
 
 
 class StructureRing(Ring):
@@ -218,7 +245,7 @@ class StructureButton(Button):
 		self.disable()
 
 	def on_click(self, event):
-		self.world._supress = True
+		return False
 
 	def state(self):
 		return 'enabled' if self.enabled == True else 'disabled'
@@ -242,6 +269,8 @@ class StructureButton(Button):
 
 	def draw(self, surf):
 		if self.ring.is_active():
+			if not hasattr(self, "center"):
+				self.center = self.rect.center
 			Button.draw(self, surf)
 			self.image, rect = self.get_image()
 			surf.blit(self.image, (self.rect.left, self.rect.top))
@@ -256,9 +285,9 @@ class FireTowerButton(StructureButton):
 		if self.world.has_selected():
 			if not self.world.get_selected().has_project():
 				self.project = Project('firetower')
+				self.project.new = True
 				structure = ArcherTower()
 				self.project.set_structure(structure)
-				StructureButton.on_click(self, event)
 				self.world.get_selected().set_project(self.project)
 
 class IceTowerButton(StructureButton):
@@ -267,12 +296,13 @@ class IceTowerButton(StructureButton):
 
 	def on_click(self, event):
 		StructureButton.on_click(self, event)
-		self.project = Project('icetower')
-		structure = WizardTower()
-		self.project.set_structure(structure)
-		StructureButton.on_click(self, event)
 		if self.world.has_selected():
-			self.world.get_selected().set_project(self.project)
+			if not self.world.get_selected().has_project():
+				self.project = Project('icetower')
+				self.project.new = True
+				structure = WizardTower()
+				self.project.set_structure(structure)
+				self.world.get_selected().set_project(self.project)
 
 class LightningTowerButton(StructureButton):
 	def __init__(self):
@@ -280,11 +310,13 @@ class LightningTowerButton(StructureButton):
 
 	def on_click(self, event):
 		StructureButton.on_click(self, event)
-		self.project = Project('lightningtower')
-		structure = BomberTower()
-		self.project.set_structure(structure)
 		if self.world.has_selected():
-			self.world.get_selected().set_project(self.project)
+			if not self.world.get_selected().has_project():			
+				self.project = Project('lightningtower')
+				self.project.new = True
+				structure = BomberTower()
+				self.project.set_structure(structure)
+				self.world.get_selected().set_project(self.project)
 
 class PitButton(StructureButton):
 	image_base = 'pit_'
@@ -300,12 +332,12 @@ class PitButton(StructureButton):
 
 	def on_click(self, event):
 		StructureButton.on_click(self, event)
-		print "Starting Pit Project"
-		self.project = Project('pit')
-		self.project.set_structure(Pit())
-		StructureButton.on_click(self, event)
 		if self.world.has_selected():
-			self.world.get_selected().set_project(self.project)
+			if not self.world.get_selected().has_project():			
+				self.project = Project('pit')
+				self.project.new = True
+				self.project.set_structure(Pit())
+				self.world.get_selected().set_project(self.project)
 
 class MoundButton(StructureButton):
 	image_base = 'mound_'
@@ -315,17 +347,21 @@ class MoundButton(StructureButton):
 
 	def on_click(self, event):
 		StructureButton.on_click(self, event)
-		self.project = Project('mound')
-		self.project.set_structure(Mound())
-		StructureButton.on_click(self, event)
 		if self.world.has_selected():
-			self.world.get_selected().set_project(self.project)
+			if not self.world.get_selected().has_project():			
+				self.project = Project('mound')
+				self.project.new = True
+				self.project.set_structure(Mound())
+				self.world.get_selected().set_project(self.project)
+
+class CharacterDisk(EventedSurface):
+	def __init__(self):
+		EventedSurface.__init__(self)
 
 if __name__ == '__main__':
 	# run some tests
 	test = Button()
 	menuring = MenuRing(test)
 	menuring.update()
-	print menuring.button_center(90)
 	menuring.add_button(test)
 	test.draw(pygame.Surface((90,90)))
