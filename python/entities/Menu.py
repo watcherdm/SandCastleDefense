@@ -9,6 +9,7 @@ LIFECOLOR = pygame.Color(255, 0, 0)
 BLOCKSIZE = 50
 
 class Project:
+	xp = 0
 	def __init__(self, type = 'idle'):
 		self.type = type
 		self.position = None
@@ -245,7 +246,14 @@ class StructureButton(Button):
 		self.disable()
 
 	def on_click(self, event):
-		return False
+		if self.world.has_selected():
+			if not self.world.get_selected().has_project():
+				self.project = Project(self.project_type)
+				self.project.new = True
+				structure = self.project_structure()
+				self.project.set_structure(structure)
+				self.world.get_selected().set_project(self.project)
+
 
 	def state(self):
 		return 'enabled' if self.enabled == True else 'disabled'
@@ -277,50 +285,31 @@ class StructureButton(Button):
 
 
 class FireTowerButton(StructureButton):
+	project_type = 'firetower'
+	project_structure = ArcherTower
+	xp = 100
 	def __init__(self):
 		StructureButton.__init__(self, 'fire')
 
-	def on_click(self, event):
-		StructureButton.on_click(self, event)
-		if self.world.has_selected():
-			if not self.world.get_selected().has_project():
-				self.project = Project('firetower')
-				self.project.new = True
-				structure = ArcherTower()
-				self.project.set_structure(structure)
-				self.world.get_selected().set_project(self.project)
 
 class IceTowerButton(StructureButton):
+	project_type = 'icetower'
+	project_structure = WizardTower
+	xp = 100
 	def __init__(self):
 		StructureButton.__init__(self, 'ice')
 
-	def on_click(self, event):
-		StructureButton.on_click(self, event)
-		if self.world.has_selected():
-			if not self.world.get_selected().has_project():
-				self.project = Project('icetower')
-				self.project.new = True
-				structure = WizardTower()
-				self.project.set_structure(structure)
-				self.world.get_selected().set_project(self.project)
-
 class LightningTowerButton(StructureButton):
+	project_type = 'lightningtower'
+	project_structure = BomberTower
+	xp = 100
 	def __init__(self):
 		StructureButton.__init__(self, 'lightning')
 
-	def on_click(self, event):
-		StructureButton.on_click(self, event)
-		if self.world.has_selected():
-			if not self.world.get_selected().has_project():			
-				self.project = Project('lightningtower')
-				self.project.new = True
-				structure = BomberTower()
-				self.project.set_structure(structure)
-				self.world.get_selected().set_project(self.project)
-
 class PitButton(StructureButton):
 	image_base = 'pit_'
-
+	project_type = 'pit'
+	project_structure = Pit
 	def __init__(self):
 		StructureButton.__init__(self, '')
 
@@ -330,29 +319,12 @@ class PitButton(StructureButton):
 	def on_mouseup(self, event):
 		print "Mouse up"
 
-	def on_click(self, event):
-		StructureButton.on_click(self, event)
-		if self.world.has_selected():
-			if not self.world.get_selected().has_project():			
-				self.project = Project('pit')
-				self.project.new = True
-				self.project.set_structure(Pit())
-				self.world.get_selected().set_project(self.project)
-
 class MoundButton(StructureButton):
 	image_base = 'mound_'
-
+	project_type = 'mound'
+	project_structure = Mound
 	def __init__(self):
 		StructureButton.__init__(self, '')
-
-	def on_click(self, event):
-		StructureButton.on_click(self, event)
-		if self.world.has_selected():
-			if not self.world.get_selected().has_project():			
-				self.project = Project('mound')
-				self.project.new = True
-				self.project.set_structure(Mound())
-				self.world.get_selected().set_project(self.project)
 
 class CharacterDisk(EventedSurface):
 	def __init__(self):

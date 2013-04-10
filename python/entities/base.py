@@ -1,7 +1,12 @@
 import pygame, os, sys
+from engines.wave import *
 
 RED = pygame.Color(255, 0, 0, 255)
 ASSETDIR = "assets/images/"
+WAVEPRECISION = 100
+TIDELEVELS = (.5, 1, 1.5, 2, 3, 4, 6)
+WAVELEVELS = (10, 20, 50, 100)
+OCEANCOLOR = pygame.Color(73, 130, 255)
 
 class EventedSprite(pygame.sprite.DirtySprite):
   collide_method = "RECT"
@@ -235,3 +240,38 @@ def load_sliced_sprites(w, h, filename):
       surf = master_image.subsurface(position)
       images[j].append(surf)
   return images
+
+class Ocean(pygame.sprite.OrderedUpdates):
+  base = 100
+  range = 100
+  wave_count = 0
+  i = 0
+  wave = []
+  current_tide_level = TIDELEVELS[0]
+  rect = None
+  def __init__(self):
+    self.screen = pygame.display.get_surface()
+    self.world = World(self.screen.get_size())
+    self.wave = get_line(self.wave_count + 1, WAVEPRECISION)
+    for i in range(0, self.screen.get_size()[0], 100):
+      print "Assembling wave part " + str(i)
+
+  def update(self, events):
+    wave_point = self.wave[self.wave_count]
+    if (self.i % 3 == 0):
+      self.wave_count += 1
+
+    if self.wave_count >= len(self.wave):
+      self.wave_count = 0
+      self.wave = get_line(self.wave_count + 1, WAVEPRECISION)
+      pygame.mixer.Sound("assets/sounds/oceanwave.wav").play()
+
+    waveheight = (self.range * self.current_tide_level) * (1 + wave_point)
+    height = self.base + waveheight
+    self.rect = pygame.Rect((0, self.screen.get_size()[1] - height) + self.screen.get_size())
+    for t in pygame.sprite.spritecollide(self, self.world.map.tiles,pygame.sprite.collide_rect):
+      t.make_dirty()
+    self.i += 1
+
+  def draw(self, surf):
+    surf.fill(OCEANCOLOR, self.rect)
