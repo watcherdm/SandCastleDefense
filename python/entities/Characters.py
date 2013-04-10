@@ -237,7 +237,7 @@ class SelectableCharacter(Character):
 
     def finish_project(self):
         self.time_building = 0
-        self.xp += 100
+        self.xp += self.project.xp
         self.building = False
         self.project.set_structure(None)
         self.set_project(None)

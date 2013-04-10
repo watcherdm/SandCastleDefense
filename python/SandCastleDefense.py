@@ -6,19 +6,15 @@ from entities.base import *
 from entities.Characters import *
 from entities.Structures import *
 from entities.Menu import *
-from engines.wave import *
 from entities.map import *
 
 version = '0.0.2'
 SCREENHEIGHT = 600
 SCREENWIDTH = 1000
 SCREENSIZE = (SCREENWIDTH, SCREENHEIGHT)
-TIDELEVELS = (.5, 1, 1.5, 2, 3, 4, 6)
-WAVELEVELS = (10, 20, 50, 100)
 BEACHCOLOR = pygame.Color(255, 222, 73, 1)
 OCEANCOLOR = pygame.Color(73, 130, 255)
 WETSANDCOLOR = pygame.Color(94,82,69, 50)
-WAVEPRECISION = 100
 
 def startGame():
 	world = World(SCREENSIZE)
@@ -130,12 +126,9 @@ def init():
 		}
 	}
 
-	world.current_tide_level = TIDELEVELS[0]
 	world.selectable = pygame.sprite.OrderedUpdates()
 	world.hl_block = HighlightBlock()
 	initCritters()
-	world.oldocean = None
-	world.ocean = None
 	loadPlayer(Jenai, (100, 100))
 	loadPlayer(Steve, (100, 300))
 	loadMusic()
@@ -183,13 +176,13 @@ def runLevel(currentLevel):
 	world = World(SCREENSIZE)
 	level = world.gameLevels[currentLevel]
 	events = pygame.event.get()
-	#adjust tide
+	world.ocean.update(events)
 	points_per_wave = (level["tiles"] / level["waves"])
 	levels_in_play = (level["completed"] + 1)
 	wave_points = (points_per_wave * levels_in_play)
 	if len(world.structures.sprites()) >=  wave_points:
 		#send wave
-		points = wave_points + len(world.map.tiles.get_sprites_from_layer(1))
+		points = wave_points + (len(world.map.tiles.get_sprites_from_layer(1)) / level["waves"])
 		while points > 0:
 			critter = Crab(world.map.getRandomTile())
 			world.critters.add(critter)
@@ -202,20 +195,9 @@ def runLevel(currentLevel):
 		world.currentLevel += 1
 		print "Level Completed, moving on"
 
-	if world.wave_count >= len(world.wave):
-		world.wave_count = 0
-		world.wave = get_line(world.wave_count + 1, WAVEPRECISION)
-		pygame.mixer.Sound("assets/sounds/oceanwave.wav").play()
 		# start a sound
 	
 	world.hl_block.update(events)
-
-	world.ocean = build_ocean(world.wave[world.wave_count], world.current_tide_level)
-	if world.oldocean == None or world.oldocean.top > world.ocean.top or WETSANDCOLOR.a == 0:
-		world.oldocean = world.ocean
-		WETSANDCOLOR.a = 255
-	if (world.i % 3 == 0):
-		world.wave_count += 1
 
 	for name in world.levels:
 		for level in world.levels[name]["lvl"]:
@@ -230,19 +212,19 @@ def runLevel(currentLevel):
 	world.map.tiles.update(events)
 	world.map.tiles.draw(world.sand)
 	world.hl_block.draw(world.sand)
-	if WETSANDCOLOR.a > 0:
-		WETSANDCOLOR.a = WETSANDCOLOR.a - 1
-		oosurf = pygame.Surface((world.oldocean.right - world.oldocean.left, world.oldocean.bottom - world.oldocean.top))
-		oosurf.set_alpha(WETSANDCOLOR.a)
-		oosurf.fill(WETSANDCOLOR)
-		world.sand.blit(oosurf, (world.oldocean.left, world.oldocean.top))
+	# if WETSANDCOLOR.a > 0:
+	# 	WETSANDCOLOR.a = WETSANDCOLOR.a - 1
+	# 	oosurf = pygame.Surface((world.oldocean.right - world.oldocean.left, world.oldocean.bottom - world.oldocean.top))
+	# 	oosurf.set_alpha(WETSANDCOLOR.a)
+	# 	oosurf.fill(WETSANDCOLOR)
+	# 	world.sand.blit(oosurf, (world.oldocean.left, world.oldocean.top))
 	world.selectable.draw(world.sand)
 	world.critters.draw(world.sand)
 	world.update(events)
+	world.ocean.draw(world.sand)
 	for sprite in world.map.tiles.sprites():
 		if hasattr(sprite, 'cannon'):
 			sprite.cannon.draw(world.sand)
-	world.sand.fill(OCEANCOLOR, world.ocean)
 	world.menuring.draw(world.sand)
 
 def initializeWorld():
@@ -251,6 +233,11 @@ def initializeWorld():
 	world.sand = sand
 	world.i = 1
 	world.clock = pygame.time.Clock()
+	images = load_sliced_sprites(100, 100, 'wavetip.png')
+	wavetip = pygame.sprite.Sprite()
+	wavetip.ani = images
+	world.wavetip = wavetip
+	world.ocean = Ocean()
 	return world
 
 def main():
@@ -261,6 +248,10 @@ def main():
 	world.sand = sand
 	world.i = 1
 	world.clock = pygame.time.Clock()
+	initializeWorld()
+	# print len(images)
+	# print len(images[0])
+
 
 	while True:
 		if world.state == 0: #game start
@@ -279,20 +270,6 @@ def main():
 		pygame.display.flip()
 		world.clock.tick(60)
 		world.i+= 1
-
-
-def build_ocean(wave_point, tide_level=.5):
-	# images = load_sliced_sprites(100, 100, 'wavetip.png')
-	# wavetip = pygame.sprite.Sprite()
-
-	# print len(images)
-	# print len(images[0])
-	oceanbase = 100
-	oceanrange = 100
-	waveheight = (oceanrange * tide_level) * (1 + wave_point)
-	height = oceanbase + waveheight
-	ocean = pygame.Rect((0, SCREENHEIGHT - height) + SCREENSIZE)
-	return ocean
 
 def build_wet_sand():
 	return False

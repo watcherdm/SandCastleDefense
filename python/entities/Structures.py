@@ -146,7 +146,7 @@ class Structure(EventedSprite):
 		pos = self.rect.center
 		height = self.height
 		EventedSprite.kill(self)
-		sprites = self.world.map.tiles.get_sprites_at((pos[1], pos[0]))
+		sprites = self.world.map.tiles.get_sprites_at((pos[0], pos[1]))
 		for sprite in sprites:
 			if sprite.layer > 0:
 				self.world.map.tiles.change_layer(sprite, sprite.layer - 1)
