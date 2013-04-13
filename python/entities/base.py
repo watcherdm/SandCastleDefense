@@ -220,6 +220,7 @@ def load_image(name, colorkey=None):
     raise SystemExit, message
   return image, image.get_rect()
 
+
 def load_sliced_sprites(w, h, filename):
   '''
   Specs :
@@ -241,6 +242,26 @@ def load_sliced_sprites(w, h, filename):
       images[j].append(surf)
   return images
 
+class WaveTip(pygame.sprite.Sprite):
+  height = 100
+  width = 100
+  def __init__(self, ocean):
+    pygame.sprite.Sprite.__init__(self)
+    self.screen = pygame.display.get_surface()
+    self.world = World(self.screen.get_size())
+    self.ani = self.world.wavetip.ani
+    self.ocean = ocean
+    self.ani_frame = 0
+    self.rect = pygame.Rect(0,0,100,100)
+
+  def update(self, events):
+    self.rect.top = self.ocean.rect.top
+    if self.ani_frame >= len(self.ani[0]):
+      self.ani_frame = 0
+    self.image = self.ani[0][self.ani_frame]
+    self.ani_frame += 1
+
+
 class Ocean(pygame.sprite.OrderedUpdates):
   base = 100
   range = 100
@@ -250,11 +271,14 @@ class Ocean(pygame.sprite.OrderedUpdates):
   current_tide_level = TIDELEVELS[0]
   rect = None
   def __init__(self):
+    pygame.sprite.OrderedUpdates.__init__(self)
     self.screen = pygame.display.get_surface()
     self.world = World(self.screen.get_size())
     self.wave = get_line(self.wave_count + 1, WAVEPRECISION)
     for i in range(0, self.screen.get_size()[0], 100):
-      print "Assembling wave part " + str(i)
+      wave_tip = WaveTip(self)
+      self.add(wave_tip)
+      wave_tip.rect.left = i
 
   def update(self, events):
     wave_point = self.wave[self.wave_count]
@@ -269,9 +293,14 @@ class Ocean(pygame.sprite.OrderedUpdates):
     waveheight = (self.range * self.current_tide_level) * (1 + wave_point)
     height = self.base + waveheight
     self.rect = pygame.Rect((0, self.screen.get_size()[1] - height) + self.screen.get_size())
-    for t in pygame.sprite.spritecollide(self, self.world.map.tiles,pygame.sprite.collide_rect):
+    colliding_tiles = pygame.sprite.groupcollide(self.world.map.tiles, self, False, False, pygame.sprite.collide_rect)
+    for t in colliding_tiles:
       t.make_dirty()
     self.i += 1
+    for s in self.sprites():
+      s.update(events)
 
   def draw(self, surf):
     surf.fill(OCEANCOLOR, self.rect)
+    for s in self.sprites():
+      surf.blit(s.image, s.rect)

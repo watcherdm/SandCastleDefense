@@ -371,3 +371,32 @@ class Crab(Critter):
         self.ani_speed_init = 20
         self.damage = 3
         self.cost = 0.5
+
+class Turtle(Critter):
+    height = 32
+    width = 32
+    def __init__(self, pos):
+        Critter.__init__(self, 'turtle', pos)
+        self.health = 100
+        self.max_health = 100
+        self.move_speed = 2
+        self.ani_speed_init = 20
+        self.damage = 3
+        self.cost = 1
+
+class Snake(Critter):
+    height = 48
+    width = 48
+    def __init__(self, pos):
+        Critter.__init__(self, 'snake', pos)
+        self.health = 150
+        self.max_health = 150
+        self.move_speed = 4
+        self.ani_speed_init = 20
+        self.damage = 5
+        self.cost = 2
+
+class Seagull(Critter):
+    height = 64
+    width = 64
+    
