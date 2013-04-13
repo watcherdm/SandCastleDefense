@@ -369,7 +369,7 @@ class Crab(Critter):
         self.move_speed = 10
         self.modifiers = []
         self.ani_speed_init = 20
-        self.damage = 3
+        self.damage = 5
         self.cost = 0.5
 
 class Turtle(Critter):
@@ -377,11 +377,12 @@ class Turtle(Critter):
     width = 32
     def __init__(self, pos):
         Critter.__init__(self, 'turtle', pos)
-        self.health = 100
-        self.max_health = 100
-        self.move_speed = 2
+        self.health = 150
+        self.max_health = 150
+        self.move_speed = 8
+        self.modifiers = []
         self.ani_speed_init = 20
-        self.damage = 3
+        self.damage = 10
         self.cost = 1
 
 class Snake(Critter):

@@ -12,9 +12,14 @@ version = '0.0.2'
 SCREENHEIGHT = 600
 SCREENWIDTH = 1000
 SCREENSIZE = (SCREENWIDTH, SCREENHEIGHT)
-BEACHCOLOR = pygame.Color(255, 222, 73, 1)
+BEACHCOLOR            = pygame.Color(255, 222, 73, 1)
 OCEANCOLOR = pygame.Color(73, 130, 255)
 WETSANDCOLOR = pygame.Color(94,82,69, 50)
+
+critters = {
+	"Crab": Crab,
+	"Turtle": Turtle
+}
 
 def startGame():
 	world = World(SCREENSIZE)
@@ -90,19 +95,19 @@ def init():
 		{
 			"tiles": 20,
 			"waves": 4,
-			"critters": ["Crab","Turtle", "Bully"],
+			"critters": ["Crab","Turtle"],
 			"completed": 0
 		},
 		{
 			"tiles": 40,
 			"waves": 5,
-			"critters": ["Crab", "Turtle", "Eel", "Bully"],
+			"critters": ["Crab", "Turtle"],
 			"completed": 0
 		},
 		{
 			"tiles": 72,
 			"waves": 6,
-			"critters": ["Crab", "Turtle", "Eel", "Seagull", "Bully"],
+			"critters": ["Crab", "Turtle"],
 			"completed": 0
 		}
 	]
@@ -184,7 +189,8 @@ def runLevel(currentLevel):
 		#send wave
 		points = wave_points + (len(world.map.tiles.get_sprites_from_layer(1)) / level["waves"])
 		while points > 0:
-			critter = Crab(world.map.getRandomTile())
+			critterConstructor = critters[random.choice(level["critters"])]
+			critter = critterConstructor(world.map.getRandomTile())
 			world.critters.add(critter)
 			points-= critter.cost
 		for critter in world.critters:
