@@ -3,7 +3,9 @@ from math import sin, cos, floor, radians
 from base import *
 from Structures import *
 
-HIGHLIGHTCOLOR = pygame.Color(255, 255, 255)
+WHITE = pygame.Color(255, 255, 255)
+RED = pygame.Color(255,0,0)
+GREEN = pygame.Color(0,255,0)
 ENERGYCOLOR = pygame.Color(0, 231, 255)
 LIFECOLOR = pygame.Color(255, 0, 0)
 BLOCKSIZE = 50
@@ -23,8 +25,10 @@ class Project:
 		if pos == None:
 			self.active = False
 		else:
-			self.active = True
-		self.position = ((pos[0] / BLOCKSIZE) * BLOCKSIZE, (pos[1] / BLOCKSIZE) * BLOCKSIZE)
+			if self.structure.can_build_at(pos):
+				self.active = True
+				self.position = ((pos[0] / BLOCKSIZE) * BLOCKSIZE, (pos[1] / BLOCKSIZE) * BLOCKSIZE)
+				return True
 
 	def get_position(self):
 		return self.position
@@ -34,6 +38,9 @@ class Project:
 
 	def get_structure(self):
 		return self.structure
+
+	def can_build_on(self, tile):
+		return self.structure.can_build_on(tile)
 
 class HighlightBlock(EventedSurface):
 	def __init__(self):
@@ -45,34 +52,62 @@ class HighlightBlock(EventedSurface):
 		self.block_rect = None
 		self.last_tile = None
 		self.tile = None
+		self.ghost = None
+		self.image = pygame.Surface((BLOCKSIZE, BLOCKSIZE))
 
-	def on_mousemove(self, event):
-		pos = ((event.pos[0] / self.bs) * self.bs, (event.pos[1] / self.bs) * self.bs)
-		top = pos[1] + 1
-		left = pos[0] + 1
-		bottom = self.bs - 2
-		right = self.bs - 2
+	def set_color(self, color):
+		self._color = color
+
+	def get_color(self):
+		return self._color
+
+	def update(self, events):
+		pos = pygame.mouse.get_pos()
+		pos = ((pos[0] / self.bs) * self.bs, (pos[1] / self.bs) * self.bs)
+		top = pos[1]
+		left = pos[0]
+		bottom = self.bs
+		right = self.bs
 		self.block_rect = pygame.Rect((left, top, right, bottom))
 		center = self.block_rect.center
 		self.last_tile = self.tile
 		self.tile = self.world.map.tiles.get_sprites_at(self.block_rect.center)[0]
-		self.tile.make_dirty()
-		if self.tile != None:
-			for t in self.tile.get_surrounding():
-				t.make_dirty()
-			if self.block_rect:
-				pygame.draw.rect(self.tile.image, HIGHLIGHTCOLOR, self.block_rect, 2)
-			self.tile.make_dirty()
-		for t in self.tile.get_surrounding():
-			t.make_dirty()
-
-	def update(self, events):
 		EventedSurface.update(self, events)
+		# determine if currently placing a project
+		self.set_color(WHITE)
+		if self.tile != None:
+			self.rect = self.tile.rect
+		if self.world.has_selected():
+			if self.world.get_selected().has_project():
+				if not self.world.get_selected().get_project().has_position():
+					self.ghost = self.world.get_selected().get_project().structure
+					tile = self.world.map.tiles.get_sprites_at(self.block_rect.center).pop()
+					if self.world.get_selected().get_project().can_build_on(tile):
+						print "Set Color Green"
+						self.set_color(GREEN)
+					else:
+						print "Set Color Red"
+						self.set_color(RED)
+				else:
+					self.ghost = None
+			else:
+				self.ghost = None
+		else:
+			self.ghost = None
+		self.alpha = 64
 
 	def draw(self, surf):
+
+		self.image.fill(self.get_color())
+		if self.ghost != None:
+			self.image.blit(self.ghost.image, (0,0))
+		self.image.set_alpha(self.alpha)
 		tile = self.tile
 		if self.last_tile != None:
 			self.last_tile.make_dirty()
+		if self.block_rect:
+			surf.blit(self.image, self.block_rect.topleft)
+
 
 
 class Button(EventedSurface):

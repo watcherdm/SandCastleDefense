@@ -215,6 +215,9 @@ class SelectableCharacter(Character):
     def set_project(self, project):
         self.project = project
 
+    def get_project(self):
+        return self.project
+
     def on_click(self, event):
         self.select()
 
@@ -223,10 +226,13 @@ class SelectableCharacter(Character):
             print "Has project"
             if not self.project.new and not self.project.has_position():
                 print "Not new project, set position"
-                self.project.set_position(event.pos)
-                self.set_destination(event.pos)
+                if self.project.set_position(event.pos):
+                    self.set_destination(event.pos)
+                else:
+                    print "Unable to set position of project"
             else:
                 print "New project, mark not new"
+                # here we can render the shadow helper object
                 self.project.new = False
         elif not self.building:
             self.set_destination(event.pos)
@@ -303,13 +309,10 @@ class Critter(Character):
             return
 
         if self.attacking == False:
-            print "Not Attacking"
             distance = 1000
             closest_target = None
             for target in self.get_targets():
-                print "Examining possible target"
                 if self.in_range(target) and isinstance(target, Structure):
-                    print "Found target in range"
                     if self.get_distance(target) < distance:
                         distance = self.get_distance(target)
                         closest_target = target
@@ -321,7 +324,6 @@ class Critter(Character):
                     self.set_destination(self.target.rect.topleft)
 
             if self.target == None:
-                print "No target found to attack aim at goal"
                 self.target = self.world.get_goal()
                 if self.moving:
                     self.clear_destination()
@@ -329,7 +331,6 @@ class Critter(Character):
 
 
         else:
-            print "Attacking"
             self.target.health -= self.damage
             if self.target.health <= 0:
                 self.target = None
@@ -379,7 +380,7 @@ class Turtle(Critter):
         Critter.__init__(self, 'turtle', pos)
         self.health = 150
         self.max_health = 150
-        self.move_speed = 8
+        self.move_speed = 4
         self.modifiers = []
         self.ani_speed_init = 20
         self.damage = 10

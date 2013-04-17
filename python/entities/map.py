@@ -23,6 +23,12 @@ class Map:
 				self.map[j][i] = Tile(j, i, world)
 				self.tiles.add(self.map[j][i])
 
+	def get_top_sprite_at(self, pos):
+		return self.tiles.get_sprites_at(pos).pop()
+
+	def get_bottom_sprite_at(self, pos):
+		return self.tiles.get_sprites_at(pos)[0]
+
 	def draw(self, surf):
 		self.tiles.draw(surf)
 
