@@ -98,12 +98,19 @@ class Structure(EventedSprite):
 		self.image = self.states[0][0]
 		self.rect = pygame.Rect((0,0, BLOCKSIZE, BLOCKSIZE))
 
+	def can_build_at(self, pos):
+		print pos
+		build_on = self.world.map.get_top_sprite_at(pos)
+		print build_on.__class__
+		return self.can_build_on(build_on)
+
+	def can_build_on(self, structure):
+		return structure.__class__ in self.builds_on
 
 	def set_position(self, position):
 		if self.rect != None and position != None:
 			self.rect.topleft = position
 		self.orig_rect = pygame.Rect(self.rect)
-		# determine vertical offset by height
 
 	def add_to_world(self):
 		self.world.map.addStructure(self)
@@ -153,6 +160,7 @@ class Structure(EventedSprite):
 				sprite.height -= height
 
 class Goal(Structure):
+	builds_on = [Tile]
 	sprite_file = "treasure.png"
 	height = 30
 	time_to_build = 500
@@ -235,10 +243,12 @@ tower_mask = {
 }
 
 class Pit(JoiningStructure):
+	builds_on = [Tile]
 	sprite_file = 'tower_short.png'
 	height = 10
 	map_set = 1
 	def __init__(self):
+		self.builds_on.append(self.__class__) # stackable
 		JoiningStructure.__init__(self)
 		self.image = self.states[self.map_set][0]
 		self.rect = pygame.Rect((0, 0, BLOCKSIZE, BLOCKSIZE))
@@ -254,10 +264,12 @@ class Pit(JoiningStructure):
 		print "Finished building pit +1 sand"
 
 class Mound(JoiningStructure):
+	builds_on = [Tile]
 	height = 10
 	map_set = 0
 	sprite_file = 'tower_short.png'
 	def __init__(self):
+		self.builds_on.append(self.__class__)
 		JoiningStructure.__init__(self)
 		self.image = self.states[0][0]
 		self.rect = pygame.Rect((0, 0, BLOCKSIZE, BLOCKSIZE))
@@ -271,6 +283,7 @@ class Tower(Structure):
 	"""
 	Tower abstract class handles cannon creation and range establishment
 	"""
+	builds_on = [Tile, Mound]
 	def __init__(self):
 		Structure.__init__(self)
 		self.create_cannon()

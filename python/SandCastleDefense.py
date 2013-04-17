@@ -258,7 +258,6 @@ def main():
 	# print len(images)
 	# print len(images[0])
 
-
 	while True:
 		if world.state == 0: #game start
 			show_splash_screen()
