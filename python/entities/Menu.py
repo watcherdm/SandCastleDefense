@@ -29,6 +29,9 @@ class Project:
 				self.active = True
 				self.position = ((pos[0] / BLOCKSIZE) * BLOCKSIZE, (pos[1] / BLOCKSIZE) * BLOCKSIZE)
 				return True
+			else:
+				print "Can't build at ::"
+				print pos
 
 	def get_position(self):
 		return self.position
@@ -71,7 +74,7 @@ class HighlightBlock(EventedSurface):
 		self.block_rect = pygame.Rect((left, top, right, bottom))
 		center = self.block_rect.center
 		self.last_tile = self.tile
-		self.tile = self.world.map.tiles.get_sprites_at(self.block_rect.center)[0]
+		self.tile = self.world.map.get_bottom_sprite_at(self.block_rect.center)
 		EventedSurface.update(self, events)
 		# determine if currently placing a project
 		self.set_color(WHITE)
@@ -81,12 +84,10 @@ class HighlightBlock(EventedSurface):
 			if self.world.get_selected().has_project():
 				if not self.world.get_selected().get_project().has_position():
 					self.ghost = self.world.get_selected().get_project().structure
-					tile = self.world.map.tiles.get_sprites_at(self.block_rect.center).pop()
+					tile = self.world.map.get_top_sprite_at(self.block_rect.center)
 					if self.world.get_selected().get_project().can_build_on(tile):
-						print "Set Color Green"
 						self.set_color(GREEN)
 					else:
-						print "Set Color Red"
 						self.set_color(RED)
 				else:
 					self.ghost = None
@@ -164,7 +165,7 @@ class Ring(EventedSurface):
 			targetCenter = (self.rect.width / 2, self.rect.height / 2)
 			self.center = (self.left + (targetCenter[0]),  self.top + (targetCenter[1]))
 			self.radius = self.rect.width / 2
-			tile = self.world.map.tiles.get_sprites_at(self.rect.center)[0]
+			tile = self.world.map.get_bottom_sprite_at(self.rect.center)
 			tile.make_dirty()
 			for t in tile.get_surrounding():
 				t.make_dirty()

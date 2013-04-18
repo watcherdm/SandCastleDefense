@@ -14,8 +14,8 @@ class Tile(pygame.sprite.DirtySprite):
 	layer = 0
 	x = 0
 	y = 0
-	structures = pygame.sprite.OrderedUpdates()
 	def __init__(self, y, x, world):
+		self.structures = pygame.sprite.OrderedUpdates()
 		pygame.sprite.DirtySprite.__init__(self)
 		self.x = x;
 		self.y = y;
@@ -101,6 +101,7 @@ class Structure(EventedSprite):
 	def can_build_at(self, pos):
 		print pos
 		build_on = self.world.map.get_top_sprite_at(pos)
+
 		print build_on.__class__
 		return self.can_build_on(build_on)
 
@@ -137,7 +138,6 @@ class Structure(EventedSprite):
 	def update(self, events):
 		EventedSprite.update(self, events)
 		self.adjustToLayer()
-
 		if self.health < self.max_health:
 			health_bar_x = 0
 			health_bar_y = 50 - 6
@@ -255,7 +255,7 @@ class Pit(JoiningStructure):
 		self.time_to_build = 300
 
 	def adjustToLayer(self):
-		self.rect.top = self.rect.top + ((self.layer - 1) * 10)
+		self.rect.top = self.orig_rect.top + ((self.layer - 1) * 10)
 
 
 	def on_buildfinish(self, builder, position):
