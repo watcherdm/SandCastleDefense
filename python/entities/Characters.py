@@ -1,6 +1,5 @@
 import os, sys, pygame, glob
 from base import *
-from Structures import *
 from math import sqrt
 
 
@@ -20,6 +19,9 @@ class Aspect(pygame.sprite.Sprite):
 class Character(EventedSprite):
     height = BLOCKSIZE
     width = BLOCKSIZE
+    ani_speed_init = 30
+    ani_speed = 30
+    ani_pos = 0
     def path_to(self, target):
         angle = self.angle_between_points(self.rect.center[0], self.rect.center[1], target.rect.center[0], target.rect.center[1])
 
@@ -36,9 +38,6 @@ class Character(EventedSprite):
         EventedSprite.__init__(self) #call Sprite intializer
         self.name = name
         self.moving = False
-        self.ani_speed_init = 30
-        self.ani_speed = self.ani_speed_init
-        self.ani_pos = 0
         if hasattr(images, self.name):
             self.ani = images[self.name].copy()
         else:
@@ -223,16 +222,10 @@ class SelectableCharacter(Character):
 
     def selected_update(self, event):
         if self.has_project():
-            print "Has project"
             if not self.project.new and not self.project.has_position():
-                print "Not new project, set position"
                 if self.project.set_position(event.pos):
                     self.set_destination(event.pos)
-                else:
-                    print "Unable to set position of project"
             else:
-                print "New project, mark not new"
-                # here we can render the shadow helper object
                 self.project.new = False
         elif not self.building:
             self.set_destination(event.pos)
@@ -332,6 +325,7 @@ class Critter(Character):
 
         else:
             self.target.health -= self.damage
+            self.image = self.ani[2][self.ani_pos]
             if self.target.health <= 0:
                 self.target = None
                 self.attacking = False
@@ -393,9 +387,10 @@ class Snake(Critter):
         Critter.__init__(self, 'snake', pos)
         self.health = 150
         self.max_health = 150
-        self.move_speed = 4
-        self.ani_speed_init = 20
-        self.damage = 5
+        self.move_speed = 20
+        self.modifiers = []
+        self.ani_speed_init = 5
+        self.damage = 15
         self.cost = 2
 
 class Seagull(Critter):
