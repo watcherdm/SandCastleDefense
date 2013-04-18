@@ -24,9 +24,13 @@ class Map:
 				self.tiles.add(self.map[j][i])
 
 	def get_top_sprite_at(self, pos):
-		return self.tiles.get_sprites_at(pos).pop()
+		tile = self.get_bottom_sprite_at(pos)
+		sprites = tile.structures.sprites()
+		result = sprites.pop() if len(sprites) > 0 else tile 
+		return result
 
 	def get_bottom_sprite_at(self, pos):
+		print self.tiles.get_sprites_at(pos)
 		return self.tiles.get_sprites_at(pos)[0]
 
 	def draw(self, surf):
