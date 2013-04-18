@@ -30,7 +30,6 @@ class Map:
 		return result
 
 	def get_bottom_sprite_at(self, pos):
-		print self.tiles.get_sprites_at(pos)
 		return self.tiles.get_sprites_at(pos)[0]
 
 	def draw(self, surf):

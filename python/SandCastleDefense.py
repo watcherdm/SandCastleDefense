@@ -8,7 +8,7 @@ from entities.Structures import *
 from entities.Menu import *
 from entities.map import *
 
-version = '0.0.2'
+version = '0.0.3'
 SCREENHEIGHT = 600
 SCREENWIDTH = 1000
 SCREENSIZE = (SCREENWIDTH, SCREENHEIGHT)
@@ -18,7 +18,8 @@ WETSANDCOLOR = pygame.Color(94,82,69, 50)
 
 critters = {
 	"Crab": Crab,
-	"Turtle": Turtle
+	"Turtle": Turtle,
+	"Snake": Snake
 }
 
 def startGame():
@@ -95,19 +96,19 @@ def init():
 		{
 			"tiles": 20,
 			"waves": 4,
-			"critters": ["Crab","Turtle"],
+			"critters": ["Crab","Turtle", "Snake"],
 			"completed": 0
 		},
 		{
 			"tiles": 40,
 			"waves": 5,
-			"critters": ["Crab", "Turtle"],
+			"critters": ["Crab", "Turtle", "Snake"],
 			"completed": 0
 		},
 		{
 			"tiles": 72,
 			"waves": 6,
-			"critters": ["Crab", "Turtle"],
+			"critters": ["Crab", "Turtle", "Snake"],
 			"completed": 0
 		}
 	]
