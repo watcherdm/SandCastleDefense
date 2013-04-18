@@ -126,9 +126,12 @@ class World(pygame.Surface, EventedSprite):
   _selected = None
   _instance = None
   _selection_changed = False
+  _goal = None
+  i = 0
   structures = None
   state = 0
   initialized = False
+  debug = False
 
   def __new__(cls, *args, **kwargs):
     if not cls._instance:
@@ -145,6 +148,7 @@ class World(pygame.Surface, EventedSprite):
       return
     pygame.Surface.__init__(self, size)
     EventedSprite.__init__(self)
+    self.clock = pygame.time.Clock()
     self.selected = False
     self._supress = False
     self.rect = self.get_rect()
