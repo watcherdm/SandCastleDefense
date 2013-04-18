@@ -239,7 +239,6 @@ def initializeWorld():
 	world = World(SCREENSIZE)
 	world.sand = sand
 	world.i = 1
-	world.clock = pygame.time.Clock()
 	images = load_sliced_sprites(100, 100, 'wavetip.png')
 	wavetip = pygame.sprite.Sprite()
 	wavetip.ani = images

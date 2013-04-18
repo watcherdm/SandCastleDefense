@@ -98,6 +98,8 @@ class Character(EventedSprite):
             self.image = self.ani[1][self.ani_pos]
             self.face_direction()
             self._walk()
+        else:
+            self.image = self.ani[0][self.ani_pos]
         # else:
         #     # healing over time
         #     if self.health < self.max_health:
@@ -305,6 +307,8 @@ class Critter(Character):
             distance = 1000
             closest_target = None
             for target in self.get_targets():
+                if target == None:
+                    return
                 if self.in_range(target) and isinstance(target, Structure):
                     if self.get_distance(target) < distance:
                         distance = self.get_distance(target)
@@ -320,23 +324,25 @@ class Critter(Character):
                 self.target = self.world.get_goal()
                 if self.moving:
                     self.clear_destination()
-                self.set_destination(self.target.rect.topleft)
+                if self.target != None:
+                    self.set_destination(self.target.rect.topleft)
 
 
         else:
-            self.target.health -= self.damage
             self.image = self.ani[2][self.ani_pos]
-            if self.target.health <= 0:
-                self.target = None
-                self.attacking = False
-                self.moving = True
+            if self.target!= None:
+                self.target.health -= self.damage
+                if self.target.health <= 0:
+                    self.target = None
+                    self.attacking = False
+                    self.moving = True
 
         Character.update(self, events)
 
 
 class Jenai(SelectableCharacter):
-    def __init__(self):
-        SelectableCharacter.__init__(self, 'jenai', (0,0))
+    def __init__(self, position = (0,0)):
+        SelectableCharacter.__init__(self, 'jenai', position)
         self.health = 200
         self.max_health = 200
         self.build_speed = 5
@@ -345,8 +351,8 @@ class Jenai(SelectableCharacter):
         self.add_sand(10000)
 
 class Steve(SelectableCharacter):
-    def __init__(self):
-        SelectableCharacter.__init__(self, 'steve', (0, 128))
+    def __init__(self, position = (0, 128)):
+        SelectableCharacter.__init__(self, 'steve', position)
         self.health = 200
         self.max_health = 200
         self.build_speed = 3.75
