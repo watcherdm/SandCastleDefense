@@ -24,6 +24,9 @@ class Tile(pygame.sprite.DirtySprite):
 		self.image.fill(BEACHCOLOR)
 		self.world = world
 
+	def isStructure(self):
+		return False
+
 	def make_dirty(self):
 		self.dirty = 1
 		for sprite in self.structures.sprites():
@@ -78,6 +81,8 @@ class Tile(pygame.sprite.DirtySprite):
 class Structure(EventedSprite):
 	height = 0
 	layer = 0
+	def isStructure(self):
+		return True
 	def __init__(self):
 		EventedSprite.__init__(self)
 		if hasattr(images, self.sprite_file):

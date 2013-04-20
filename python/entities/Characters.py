@@ -309,7 +309,7 @@ class Critter(Character):
             for target in self.get_targets():
                 if target == None:
                     return
-                if self.in_range(target) and isinstance(target, Structure):
+                if self.in_range(target) and target.isStructure():
                     if self.get_distance(target) < distance:
                         distance = self.get_distance(target)
                         closest_target = target
