@@ -36,6 +36,61 @@ callbacks = {
 	"Exit": exit
 }
 
+class Control(EventedSprite):
+	def __init__(self):
+		EventedSprite.__init__(self)
+
+class AddButton(Control):
+	width = 40
+	height = 40
+	# 5 px margin on all sides?
+	def __init__(self, binding = None, pos = (0, 0)):
+		self.binding = binding
+		Control.__init__(self)
+		self.image = pygame.Surface((self.width, self.height))
+		self.rect = pos + (self.width, self.height)
+		self.image.fill(pygame.Color(0, 255, 0), pygame.Rect(8, 16, 24, 8))
+		self.image.fill(pygame.Color(0, 255, 0), pygame.Rect(16, 8, 8, 24))
+
+	def draw(self, surf):
+		surf.blit(self.image, self.rect)
+
+class Pane(pygame.sprite.Sprite):
+	def __init__(self):
+		pygame.sprite.Sprite.__init__(self)
+		self.labels = pygame.sprite.LayeredDirty()
+		self.controls = pygame.sprite.OrderedUpdates()
+		self.image = pygame.Surface((self.width, self.height))
+		self.rect = pygame.Rect((self.top, self.left, self.width, self.height))
+
+	def update(self, events):
+		self.labels.update(events)
+		self.controls.update(events)
+
+	def draw(self, surf):
+		self.labels.draw(self.image)
+		self.controls.draw(self.image)
+		surf.blit(self.image, self.rect)
+
+class CharacterScreen(pygame.sprite.Sprite):
+	active = False
+	def __init__(self):
+		self.panes = pygame.sprite.OrderedUpdates()
+		pygame.sprite.Sprite.__init__(self)
+
+	def addPane(self, pane):
+		self.panes.add(pane)
+
+	def update(self, events):
+		if self.active:
+			self.panes.update(events)
+
+	def draw(self, surf):
+		if self.active:
+			self.panes.draw(self.image)
+			surf.blit(self.image, self.rect)
+
+
 def show_splash_screen():
 	# start new game
 	# continue game
