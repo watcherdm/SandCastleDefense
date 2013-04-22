@@ -211,6 +211,7 @@ class MenuRing(Ring):
 			self.add_button(MoundButton())
 		if target.aspect != None:
 			self.add_button(target.aspect.button)
+		self.add_button(PauseButton())
 
 	def update(self, events):
 		selected = self.world.get_selected()
@@ -349,18 +350,23 @@ class PitButton(StructureButton):
 	def __init__(self):
 		StructureButton.__init__(self, '')
 
-	def on_mousedown(self, event):
-		print "Mouse down"
-
-	def on_mouseup(self, event):
-		print "Mouse up"
-
 class MoundButton(StructureButton):
 	image_base = 'mound_'
 	project_type = 'mound'
 	project_structure = Mound
 	def __init__(self):
 		StructureButton.__init__(self, '')
+
+class PauseButton(StructureButton):
+	image_base = 'pause_'
+	project_type = 'pause'
+	project_structure = None
+	def __init__(self):
+		StructureButton.__init__(self, '')
+
+	def on_click(self, event):
+		self.world.state = 3
+		return
 
 class CharacterDisk(EventedSurface):
 	def __init__(self):

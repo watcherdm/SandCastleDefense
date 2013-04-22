@@ -402,4 +402,13 @@ class Snake(Critter):
 class Seagull(Critter):
     height = 64
     width = 64
+    def __init__(self, pos):
+        Critter.__init__(self, 'seagull', pos)
+        self.health = 250
+        self.max_health = 250
+        self.move_speed = 30
+        self.modifiers = []
+        self.ani_speed_init = 10
+        self.damage = 25
+        self.cost = 4
     

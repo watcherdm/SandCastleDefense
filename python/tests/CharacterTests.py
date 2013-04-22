@@ -18,7 +18,8 @@ class CharacterTests():
 		crab = Crab((100, 0))
 		turtle = Turtle((116,0))
 		snake = Snake((148, 0))
-		characters.add(jenai, steve, crab, turtle, snake)
+		seagull = Seagull((196, 0))
+		characters.add(jenai, steve, crab, turtle, snake, seagull)
 		sandmap = Map(world, 'assets/maps/allsand.map')
 		while True:
 			sand.fill(BEACHCOLOR)
