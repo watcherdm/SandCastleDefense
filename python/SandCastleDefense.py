@@ -19,7 +19,8 @@ WETSANDCOLOR = pygame.Color(94,82,69, 50)
 critters = {
 	"Crab": Crab,
 	"Turtle": Turtle,
-	"Snake": Snake
+	"Snake": Snake,
+	"Seagull": Seagull
 }
 
 def startGame():
@@ -56,7 +57,11 @@ class AddButton(Control):
 		surf.blit(self.image, self.rect)
 
 class Pane(pygame.sprite.Sprite):
-	def __init__(self):
+	def __init__(self, position = (0, 0), size = (40, 40)):
+		self.left = position[0]
+		self.top = position[1]
+		self.width = size[0]
+		self.height = size[1]
 		pygame.sprite.Sprite.__init__(self)
 		self.labels = pygame.sprite.LayeredDirty()
 		self.controls = pygame.sprite.OrderedUpdates()
@@ -90,6 +95,23 @@ class CharacterScreen(pygame.sprite.Sprite):
 			self.panes.draw(self.image)
 			surf.blit(self.image, self.rect)
 
+cs = None
+
+def show_character_screen():
+	world = World(SCREENSIZE)
+	if cs == None:
+		surf = CharacterScreen()
+		pic = Pane((0,0), (100, 550))
+		info = Pane((100, 0), (900, 30))
+		stats = Pane((100, 30), (900, 60))
+		abilities = Pane((100, 90), (900, 60))
+		aspects = Pane((0, 550),(1000, 50))
+		surf.addPane(pic)
+		surf.addPane(info)
+		surf.addPane(stats)
+		surf.addPane(abilities)
+		surf.addPane(aspects)
+		cs = surf
 
 def show_splash_screen():
 	# start new game
@@ -151,19 +173,19 @@ def init():
 		{
 			"tiles": 20,
 			"waves": 4,
-			"critters": ["Crab","Turtle", "Snake"],
+			"critters": ["Crab","Turtle", "Snake", "Seagull"],
 			"completed": 0
 		},
 		{
 			"tiles": 40,
 			"waves": 5,
-			"critters": ["Crab", "Turtle", "Snake"],
+			"critters": ["Crab", "Turtle", "Snake", "Seagull"],
 			"completed": 0
 		},
 		{
 			"tiles": 72,
 			"waves": 6,
-			"critters": ["Crab", "Turtle", "Snake"],
+			"critters": ["Crab", "Turtle", "Snake", "Seagull"],
 			"completed": 0
 		}
 	]
@@ -321,7 +343,8 @@ def main():
 		if world.state == 2: #play level
 			runLevel(world.currentLevel)
 		if world.state == 3: #pause level
-			showPause()
+			stopMusic()
+			show_character_screen()
 		if world.state == 99:
 			stopMusic()
 			world = initializeWorld()
