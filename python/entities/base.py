@@ -132,7 +132,7 @@ class World(pygame.Surface, EventedSprite):
   state = 0
   initialized = False
   debug = False
-
+  cs = None
   def __new__(cls, *args, **kwargs):
     if not cls._instance:
       print "creating new world"

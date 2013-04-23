@@ -19,7 +19,9 @@ class Aspect(pygame.sprite.Sprite):
 class Character(EventedSprite):
     height = BLOCKSIZE
     width = BLOCKSIZE
-    ani_speed_init = 30
+    idle_ani = 12
+    move_ani = 4
+    ani_speed_init = 4
     ani_speed = 30
     ani_pos = 0
     def path_to(self, target):
@@ -91,6 +93,7 @@ class Character(EventedSprite):
 
         self.checkState(events)
         if self.moving:
+            self.ani_speed_init = self.move_ani
             coll = self.check_collision()
             if len(coll) > 0:
                 self.moving = False
@@ -99,6 +102,7 @@ class Character(EventedSprite):
             self.face_direction()
             self._walk()
         else:
+            self.ani_speed_init = self.idle_ani
             self.image = self.ani[0][self.ani_pos]
         # else:
         #     # healing over time
@@ -139,7 +143,6 @@ class Character(EventedSprite):
             fromTop = 0
 
         if fromLeft == 0 and fromTop == 0:
-            self.ani_speed_init = 30
             self.moving = False
             self.destinations = []
             # you reached the destination, now build if you have a project
@@ -347,7 +350,7 @@ class Jenai(SelectableCharacter):
         self.max_health = 200
         self.build_speed = 5
         self.move_speed = 5
-        self.ani_speed_init = 30
+        self.ani_speed_init = 6
         self.add_sand(10000)
 
 class Steve(SelectableCharacter):
@@ -357,7 +360,7 @@ class Steve(SelectableCharacter):
         self.max_health = 200
         self.build_speed = 3.75
         self.move_speed = 5.2
-        self.ani_speed_init = 30
+        self.ani_speed_init = 6
         self.add_sand(10000)
 
 class Crab(Critter):
@@ -367,9 +370,9 @@ class Crab(Critter):
         Critter.__init__(self, 'crab', pos)
         self.health = 50
         self.max_health = 50
-        self.move_speed = 16
+        self.move_speed = 8
         self.modifiers = []
-        self.ani_speed_init = 20
+        self.ani_speed_init = 2
         self.damage = 5
         self.cost = 0.5
 
@@ -380,9 +383,9 @@ class Turtle(Critter):
         Critter.__init__(self, 'turtle', pos)
         self.health = 150
         self.max_health = 150
-        self.move_speed = 8
+        self.move_speed = 4
         self.modifiers = []
-        self.ani_speed_init = 20
+        self.ani_speed_init = 8
         self.damage = 10
         self.cost = 1
 
@@ -393,9 +396,9 @@ class Snake(Critter):
         Critter.__init__(self, 'snake', pos)
         self.health = 150
         self.max_health = 150
-        self.move_speed = 20
+        self.move_speed = 8
         self.modifiers = []
-        self.ani_speed_init = 5
+        self.ani_speed_init = 3
         self.damage = 15
         self.cost = 2
 
@@ -406,9 +409,9 @@ class Seagull(Critter):
         Critter.__init__(self, 'seagull', pos)
         self.health = 250
         self.max_health = 250
-        self.move_speed = 30
+        self.move_speed = 8
         self.modifiers = []
         self.ani_speed_init = 10
-        self.damage = 25
+        self.damage = 20
         self.cost = 4
     
