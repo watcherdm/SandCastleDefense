@@ -2,13 +2,8 @@ import pygame
 from math import sin, cos, floor, radians
 from base import *
 from Structures import *
-
-WHITE = pygame.Color(255, 255, 255)
-RED = pygame.Color(255,0,0)
-GREEN = pygame.Color(0,255,0)
-ENERGYCOLOR = pygame.Color(0, 231, 255)
-LIFECOLOR = pygame.Color(255, 0, 0)
-BLOCKSIZE = 50
+from pallette import *
+from dimensions import *
 
 class Project:
 	xp = 0
@@ -287,6 +282,7 @@ class StructureButton(Button):
 			if not self.world.get_selected().has_project():
 				self.project = Project(self.project_type)
 				self.project.new = True
+				self.project.xp = self.xp
 				structure = self.project_structure()
 				self.project.set_structure(structure)
 				self.world.get_selected().set_project(self.project)
@@ -347,6 +343,7 @@ class PitButton(StructureButton):
 	image_base = 'pit_'
 	project_type = 'pit'
 	project_structure = Pit
+	xp = 20
 	def __init__(self):
 		StructureButton.__init__(self, '')
 
@@ -354,6 +351,7 @@ class MoundButton(StructureButton):
 	image_base = 'mound_'
 	project_type = 'mound'
 	project_structure = Mound
+	xp = 20
 	def __init__(self):
 		StructureButton.__init__(self, '')
 
@@ -379,3 +377,132 @@ if __name__ == '__main__':
 	menuring.update()
 	menuring.add_button(test)
 	test.draw(pygame.Surface((90,90)))
+
+
+class Control(EventedSprite):
+	def __init__(self):
+		EventedSprite.__init__(self)
+		self.world = World(SCREENSIZE)
+
+class Label(pygame.sprite.Sprite):
+	color = BLACK
+	def __init__(self, position = (0, 0), size = (100, 100), targetAttr = "name"):
+		pygame.sprite.Sprite.__init__(self)
+		self.image = pygame.Surface(size)
+		if not pygame.font.get_init():
+			pygame.font.init()
+		fontname = pygame.font.get_default_font()
+		self.font = pygame.font.Font(fontname, 30)
+		self.rect = pygame.Rect(position + size)
+		self.attr = targetAttr
+		self.rect.topleft = position
+	
+	def update(self, events):
+		self.text = str(getattr(self.pane.target, self.attr))
+		text = self.font.render(self.text, True, self.color)
+		self.image = text
+
+class CloseButton(Control):
+	def __init__(self, position = (0, 0), size = (40, 40)):
+		self.width = 40
+		self.height = 40
+		Control.__init__(self)
+		pygame.font.init()
+		self.font = pygame.font.SysFont('arial', 20)
+		self.image = pygame.Surface(size)
+		self.rect = self.image.get_rect()
+		self.rect.topleft = position
+
+	def update(self, events):
+		Control.update(self, events)
+		label = self.font.render('X', True, BLACK)
+		self.image = label
+
+	def on_click(self, event):
+		self.world.state = 2
+
+class AddButton(Control):
+	width = 40
+	height = 40
+	# 5 px margin on all sides?
+	def __init__(self, binding = None, pos = (0, 0)):
+		self.binding = binding
+		self.image = pygame.Surface((self.width, self.height))
+		self.rect = pos + (self.width, self.height)
+		Control.__init__(self)
+		self.image.fill(GREEN, pygame.Rect(8, 16, 24, 8))
+		self.image.fill(GREEN, pygame.Rect(16, 8, 8, 24))
+
+class Pane(EventedSprite):
+	target = None
+	def __init__(self, position = (0, 0), size = (40, 40)):
+		EventedSprite.__init__(self)
+		self.color = OCEANCOLOR
+		self.left = position[0]
+		self.top = position[1]
+		self.width = size[0]
+		self.height = size[1]
+		self.labels = pygame.sprite.OrderedUpdates()
+		self.controls = pygame.sprite.OrderedUpdates()
+		self.image = pygame.Surface((self.width, self.height))
+		self.rect = pygame.Rect((self.top, self.left, self.width, self.height))
+
+	def setTarget(self, target):
+		self.target = target
+
+	def addControl(self, control):
+		control.pane = self
+		self.controls.add(control)
+
+	def addLabel(self, label):
+		label.pane = self
+		self.labels.add(label)
+
+	def update(self, events):
+		self.image.fill(self.color, (0,0, self.width, self.height))
+		if len(self.labels.sprites()) > 0:
+			print "Draw the " + str(len(self.labels.sprites())) + " labels"
+			self.labels.update(events)
+			self.labels.draw(self.image)
+		if len(self.controls.sprites()) > 0:
+			print "Draw the " + str(len(self.controls.sprites())) + " controls"
+			self.controls.update(events)
+			self.controls.draw(self.image)
+
+class PicturePane(Pane):
+	def __init__(self, position = (0, 0), size = (40, 40), target = None):
+		Pane.__init__(self, position, size)
+		self.target = target
+
+	def update(self, events):
+		Pane.update(self, events)
+		if self.target != None:
+			image = pygame.transform.scale(self.target.image, (300, 300))
+			self.image.blit(image, (0, 100))
+			self.target.update(events)
+
+class CharacterScreen(pygame.sprite.Sprite):
+	active = False
+	def __init__(self, world):
+		self.color = BLACK
+		pygame.sprite.Sprite.__init__(self)
+		self.image = pygame.Surface(world.sand.get_size())
+		self.rect = pygame.Rect(world.sand.get_rect())
+		self.panes = pygame.sprite.OrderedUpdates()
+
+	def setTarget(self, target):
+		for pane in self.panes.sprites():
+			pane.setTarget(target)
+
+	def addPane(self, pane):
+		self.panes.add(pane)
+
+	def update(self, events):
+		if self.active:
+			self.panes.update(events)
+
+	def draw(self, surf):
+		if self.active:
+			self.image.fill(self.color)
+			self.panes.draw(self.image)
+			surf.blit(self.image, self.rect)
