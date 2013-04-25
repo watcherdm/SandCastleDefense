@@ -52,7 +52,7 @@ class Character(EventedSprite):
         self.destinations = []
         self.aspect = None
         self.aspects = []
-        self.xp = 400
+        self.xp = 0
         self._callbacks = {}
 
     def face_direction(self):
@@ -175,6 +175,7 @@ class SelectableCharacter(Character):
     def __init__(self, name, position = (10,10)):
         Character.__init__(self, name, position)
         screen = pygame.display.get_surface()
+        self.level = 1
         self.project = None
         self.area = screen.get_rect()
         self.building = False
@@ -240,6 +241,7 @@ class SelectableCharacter(Character):
             Character.set_destination(self, position)
 
     def finish_project(self):
+        print "Finishing the build with " + str(self.project.xp)
         self.time_building = 0
         self.xp += self.project.xp
         self.building = False

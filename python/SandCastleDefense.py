@@ -7,19 +7,10 @@ from entities.Characters import *
 from entities.Structures import *
 from entities.Menu import *
 from entities.map import *
+from pallette import *
+from dimensions import *
 
 version = '0.0.3'
-SCREENHEIGHT = 600
-SCREENWIDTH  = 1000
-SCREENSIZE   = (SCREENWIDTH, SCREENHEIGHT)
-BEACHCOLOR   = pygame.Color(255, 222, 73)
-OCEANCOLOR   = pygame.Color(73, 130, 255)
-WETSANDCOLOR = pygame.Color(94,82,69, 50)
-WHITE        = pygame.Color(255,255,255)
-BLACK        = pygame.Color(0,0,0)
-RED          = pygame.Color(255, 0, 0)
-BLUE         = pygame.Color(0, 0, 255)
-GREEN        = pygame.Color(0, 255, 0)
 critters = {
 	"Crab": Crab,
 	"Turtle": Turtle,
@@ -41,112 +32,9 @@ callbacks = {
 	"Exit": exit
 }
 
-class Control(EventedSprite):
-	def __init__(self):
-		EventedSprite.__init__(self)
-		self.world = World(SCREENSIZE)
-
-class Label(pygame.sprite.Sprite):
-	def __init__(self, position = (0, 0), size = (100, 100), text = ""):
-		pygame.sprite.Sprite.__init__(self)
-		self.image = pygame.Surface(size)
-		self.font = pygame.font.SysFont('arial', 20)
-		self.rect = self.image.get_rect()
-		self.text = text
-		self.rect.topleft = position
-
-
-
-class CloseButton(Control):
-	def __init__(self, position = (0, 0), size = (40, 40)):
-		self.width = 40
-		self.height = 40
-		Control.__init__(self)
-		pygame.font.init()
-		self.font = pygame.font.SysFont('arial', 20)
-		self.image = pygame.Surface(size)
-		self.rect = self.image.get_rect()
-		self.rect.topleft = position
-
-	def update(self, events):
-		Control.update(self, events)
-		label = self.font.render('X', True, BLACK)
-		self.image.blit(label, self.rect)
-
-	def on_click(self, event):
-		self.world.state = 2
-
-class AddButton(Control):
-	width = 40
-	height = 40
-	# 5 px margin on all sides?
-	def __init__(self, binding = None, pos = (0, 0)):
-		self.binding = binding
-		self.image = pygame.Surface((self.width, self.height))
-		self.rect = pos + (self.width, self.height)
-		Control.__init__(self)
-		self.image.fill(GREEN, pygame.Rect(8, 16, 24, 8))
-		self.image.fill(GREEN, pygame.Rect(16, 8, 8, 24))
-
-class Pane(pygame.sprite.Sprite):
-	def __init__(self, position = (0, 0), size = (40, 40)):
-		pygame.sprite.Sprite.__init__(self)
-		self.color = OCEANCOLOR
-		self.left = position[0]
-		self.top = position[1]
-		self.width = size[0]
-		self.height = size[1]
-		self.labels = pygame.sprite.LayeredDirty()
-		self.controls = pygame.sprite.OrderedUpdates()
-		self.image = pygame.Surface((self.width, self.height))
-		self.rect = pygame.Rect((self.top, self.left, self.width, self.height))
-
-	def addControl(self, control):
-		self.controls.add(control)
-
-	def update(self, events):
-		self.image.fill(self.color, (0,0, self.width, self.height))
-		self.labels.update(events)
-		self.controls.update(events)
-		self.labels.draw(self.image)
-		self.controls.draw(self.image)
-
-class PicturePane(Pane):
-	def __init__(self, position = (0, 0), size = (40, 40), target = None):
-		Pane.__init__(self, position, size)
-		self.target = target
-
-	def update(self, events):
-		Pane.update(self, events)
-		if self.target != None:
-			image = pygame.transform.scale(self.target.image, (300, 300))
-			self.image.blit(image, (0, 100))
-			self.target.update(events)
-
-class CharacterScreen(pygame.sprite.Sprite):
-	active = False
-	def __init__(self, world):
-		self.color = BLACK
-		pygame.sprite.Sprite.__init__(self)
-		self.image = pygame.Surface(world.sand.get_size())
-		self.rect = pygame.Rect(world.sand.get_rect())
-		self.panes = pygame.sprite.OrderedUpdates()
-
-	def addPane(self, pane):
-		self.panes.add(pane)
-
-	def update(self, events):
-		if self.active:
-			self.panes.update(events)
-
-	def draw(self, surf):
-		if self.active:
-			self.image.fill(self.color)
-			self.panes.draw(self.image)
-			surf.blit(self.image, self.rect)
-
 def show_character_screen():
 	world = World(SCREENSIZE)
+	world.map.dirtyTiles()
 	if world.cs == None:
 		
 		surf = CharacterScreen(world)
@@ -166,17 +54,24 @@ def show_character_screen():
 		aspects = Pane((500, 0),(900, 100))
 		aspects.color = GREEN
 		# currently selected and selectable aspects
-
-		close = CloseButton((960,0), (40, 40))
-		info.addControl(close)
+		close = Pane((500, 900), (100, 100))
+		close.color = ENERGYCOLOR
 
 		surf.addPane(pic)
 		surf.addPane(info)
 		surf.addPane(stats)
 		surf.addPane(abilities)
 		surf.addPane(aspects)
+		surf.addPane(close)
+		name = Label((30, 30), (100, 300))
+		level = Label((330, 30), (100, 200), 'level')
+		xp = Label((560, 30), (100, 100), 'xp')
+		info.addLabel(name)
+		info.addLabel(level)
+		info.addLabel(xp)
 		world.cs = surf
 	world.cs.active = True
+	world.cs.setTarget(world.get_selected())
 	events = pygame.event.get()
 	world.cs.update(events)
 	world.cs.draw(world.sand)
@@ -263,7 +158,7 @@ def init():
 	world.levels = {
 		"steve": {
 			"lvl": {
-				400: "knight",
+				0: "knight",
 				1200: "wizard",
 				4000: "pirate"			
 			},
@@ -271,7 +166,7 @@ def init():
 		},
 		"jenai": {
 			"lvl": {
-				400: "wizard",
+				0: "wizard",
 				1200: "pirate",
 				4000: "knight"
 			},
