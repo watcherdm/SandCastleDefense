@@ -461,11 +461,9 @@ class Pane(EventedSprite):
 	def update(self, events):
 		self.image.fill(self.color, (0,0, self.width, self.height))
 		if len(self.labels.sprites()) > 0:
-			print "Draw the " + str(len(self.labels.sprites())) + " labels"
 			self.labels.update(events)
 			self.labels.draw(self.image)
 		if len(self.controls.sprites()) > 0:
-			print "Draw the " + str(len(self.controls.sprites())) + " controls"
 			self.controls.update(events)
 			self.controls.draw(self.image)
 
