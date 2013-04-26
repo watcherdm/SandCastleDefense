@@ -53,22 +53,27 @@ def show_character_screen():
 		# the abilities the characters has available
 		aspects = Pane((500, 0),(900, 100))
 		aspects.color = GREEN
+		x = 0
+		for aspect in world.aspects:
+			print aspect
+			world.aspects[aspect].rect.topleft = (x, 0)
+			aspects.addControl(world.aspects[aspect])
+			x += 100
 		# currently selected and selectable aspects
-		close = Pane((500, 900), (100, 100))
-		close.color = ENERGYCOLOR
 
 		surf.addPane(pic)
 		surf.addPane(info)
 		surf.addPane(stats)
 		surf.addPane(abilities)
 		surf.addPane(aspects)
-		surf.addPane(close)
+		close = CloseButton((660, 30))
 		name = Label((30, 30), (100, 300))
 		level = Label((330, 30), (100, 200), 'level')
 		xp = Label((560, 30), (100, 100), 'xp')
 		info.addLabel(name)
 		info.addLabel(level)
 		info.addLabel(xp)
+		info.addControl(close)
 		world.cs = surf
 	world.cs.active = True
 	world.cs.setTarget(world.get_selected())
@@ -261,8 +266,8 @@ def runLevel(currentLevel):
 
 	for name in world.levels:
 		for level in world.levels[name]["lvl"]:
-	 		if world.levels[name]["obj"].xp >= level:
-	 			world.levels[name]["obj"].imagine_aspect(world.aspects[world.levels[name]["lvl"][level]])
+	 		if world.levels[name]["obj"].xp >= level and not world.levels[name]["lvl"][level] in world.levels[name]["obj"].available_aspects:
+	 			world.levels[name]["obj"].available_aspects.append(world.levels[name]["lvl"][level])
 
 	world.menuring.update(events)
 	for m in world.menuring.get_buttons():

@@ -198,7 +198,7 @@ class MenuRing(Ring):
 
 	def update_target_buttons(self):
 		self.empty()
-		self.add_target_buttons(self, self.target)
+		self.add_target_buttons(self.target)
 
 	def add_target_buttons(self, target):
 		self.add_button(PitButton())
@@ -383,6 +383,41 @@ class Control(EventedSprite):
 	def __init__(self):
 		EventedSprite.__init__(self)
 		self.world = World(SCREENSIZE)
+
+	def update(self, events):
+		self.rect.top += self.pane.rect.top
+		self.rect.left += self.pane.rect.left
+		EventedSprite.update(self, events)
+		self.rect.top -= self.pane.rect.top
+		self.rect.left -= self.pane.rect.left
+
+class Aspect(Control):
+    def __init__(self, name = None, button = None):
+        Control.__init__(self)
+        self.world = World(SCREENSIZE)
+        self.name = name
+        self.button = button
+        image, self.rect = load_image(self.name + '_hat.png', -1)
+        self.orig_image = pygame.transform.scale(image, (100, 100))
+        self.image = pygame.Surface((100,100))
+        self.image.fill(FUSCIA)
+        self.image.set_colorkey(FUSCIA)
+        self.image.blit(self.orig_image, (0,0))
+        self.rect.height = 100
+        self.rect.width = 100
+
+    def update(self, events):
+    	if self.world.has_selected():
+    		selected = self.world.get_selected()
+    		if self.name in selected.available_aspects:
+    			self.image.set_alpha(256)
+    			Control.update(self, events)
+    		else:
+    			self.image.set_alpha(64)
+
+    def on_click(self, event):
+    	self.world.get_selected().imagine_aspect(self)
+    	self.world.menuring.update_target_buttons()
 
 class Label(pygame.sprite.Sprite):
 	color = BLACK
