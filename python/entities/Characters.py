@@ -1,20 +1,12 @@
 import os, sys, pygame, glob
 from base import *
 from math import sqrt
+from dimensions import *
 
-
-BLOCKSIZE = 50
 
 images = {
     
 }
-
-
-class Aspect(pygame.sprite.Sprite):
-    def __init__(self, name = None, button = None):
-        self.name = name
-        self.button = button
-        self.image, self.rect = load_image(self.name + '_hat.png', -1)
 
 class Character(EventedSprite):
     height = BLOCKSIZE
@@ -175,6 +167,7 @@ class SelectableCharacter(Character):
     def __init__(self, name, position = (10,10)):
         Character.__init__(self, name, position)
         screen = pygame.display.get_surface()
+        self.available_aspects = []
         self.level = 1
         self.project = None
         self.area = screen.get_rect()
@@ -348,6 +341,7 @@ class Critter(Character):
 class Jenai(SelectableCharacter):
     def __init__(self, position = (0,0)):
         SelectableCharacter.__init__(self, 'jenai', position)
+        self.available_aspects.append('wizard')
         self.health = 200
         self.max_health = 200
         self.build_speed = 5
@@ -358,6 +352,7 @@ class Jenai(SelectableCharacter):
 class Steve(SelectableCharacter):
     def __init__(self, position = (0, 128)):
         SelectableCharacter.__init__(self, 'steve', position)
+        self.available_aspects.append('knight')
         self.health = 200
         self.max_health = 200
         self.build_speed = 3.75
