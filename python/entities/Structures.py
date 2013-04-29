@@ -333,15 +333,16 @@ class WizardTower(Tower):
 	time_to_build = 300
 	max_health = 300
 	damage = 5
-	slowRatio = .90
+	slowRatio = .50
 	level = 1
 	def upgrade(self):
-		if self.level == 1:
-			self.level = 2
-			self.slowRatio = 0.75
-		if self.level == 2:
-			self.level = 3
-			self.slowRatio = 0.5
+		return False
+		# if self.level == 1:
+		# 	self.level = 2
+		# 	self.slowRatio = 0.75
+		# if self.level == 2:
+		# 	self.level = 3
+		# 	self.slowRatio = 0.5
 	def damage_enemy(self, target):
 		target.health -= self.damage
 		if not "move" in target.modifiers:

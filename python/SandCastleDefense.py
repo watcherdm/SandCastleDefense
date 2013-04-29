@@ -38,42 +38,7 @@ def show_character_screen():
 	if world.cs == None:
 		
 		surf = CharacterScreen(world)
-
-		pic = PicturePane((0,0), (300, 500), world.get_selected())
-		pic.color = pygame.Color(255,0,0)
-		# get pic of character
-		info = Pane((0, 300), (700, 100))
-		info.color = BEACHCOLOR
-		# render text here for name, level, xp
-		stats = Pane((100, 300), (700, 200))
-		stats.color = WETSANDCOLOR
-		# build and move speed, maybe health and magic as stats too?
-		abilities = Pane((300, 300), (700, 200))
-		abilities.color = BLUE
-		# the abilities the characters has available
-		aspects = Pane((500, 0),(900, 100))
-		aspects.color = GREEN
-		x = 0
-		for aspect in world.aspects:
-			print aspect
-			world.aspects[aspect].rect.topleft = (x, 0)
-			aspects.addControl(world.aspects[aspect])
-			x += 100
-		# currently selected and selectable aspects
-
-		surf.addPane(pic)
-		surf.addPane(info)
-		surf.addPane(stats)
-		surf.addPane(abilities)
-		surf.addPane(aspects)
-		close = CloseButton((660, 30))
-		name = Label((30, 30), (100, 300))
-		level = Label((330, 30), (100, 200), 'level')
-		xp = Label((560, 30), (100, 100), 'xp')
-		info.addLabel(name)
-		info.addLabel(level)
-		info.addLabel(xp)
-		info.addControl(close)
+		surf.setup(world)
 		world.cs = surf
 	world.cs.active = True
 	world.cs.setTarget(world.get_selected())
