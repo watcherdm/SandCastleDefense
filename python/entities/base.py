@@ -1,10 +1,12 @@
 import pygame, os, sys
+import random
 from engines.wave import *
+from dimensions import *
 
 RED = pygame.Color(255, 0, 0, 255)
 ASSETDIR = "assets/images/"
 WAVEPRECISION = 100
-TIDELEVELS = (.5, 1, 1.5, 2, 3, 4, 6)
+TIDELEVELS = (.5, 1, 1.2, 1.5, 1.7, 2.2, 2.5)
 WAVELEVELS = (10, 20, 50, 100)
 OCEANCOLOR = pygame.Color(73, 130, 255)
 
@@ -266,23 +268,59 @@ class WaveTip(pygame.sprite.Sprite):
     self.ani_frame += 1
 
 
-class Ocean(pygame.sprite.OrderedUpdates):
+class Ocean(pygame.sprite.Sprite):
   base = 100
-  range = 100
+  range = 50
+  direction = 1
   wave_count = 0
   i = 0
+  points = []
   wave = []
   current_tide_level = TIDELEVELS[0]
   rect = None
+  y = 0
+  ne = False
   def __init__(self):
-    pygame.sprite.OrderedUpdates.__init__(self)
+    pygame.sprite.Sprite.__init__(self)
     self.screen = pygame.display.get_surface()
     self.world = World(self.screen.get_size())
     self.wave = get_line(self.wave_count + 1, WAVEPRECISION)
+    self.image = pygame.Surface(SCREENSIZE)
+    self.image.fill(OCEANCOLOR)
+    self.rect = self.image.get_rect()
+    self.tips = pygame.sprite.OrderedUpdates()
     for i in range(0, self.screen.get_size()[0], 100):
       wave_tip = WaveTip(self)
-      self.add(wave_tip)
+      self.tips.add(wave_tip)
       wave_tip.rect.left = i
+    for i in range(0, SCREENSIZE[0]):
+      self.points.append(self.image.subsurface(pygame.Rect(i, 0, 1, SCREENSIZE[1])))
+
+  def ebb(self, y):
+    print "ebbing?" + str(self.direction)
+    if self.ne:
+      self.ne = False
+      return
+
+    if self.direction == 1:
+      #highest point
+      self.direction = -1
+
+  def flow(self, y):
+    print "flowing?" + str(self.direction)
+    if self.direction == -1:
+      self.direction = 1
+      self.current_tide_level = random.choice(TIDELEVELS)
+      self.ne = True
+      pygame.mixer.Sound("assets/sounds/oceanwave.wav").play()
+    for point in self.points:
+      cached_top = point.get_rect().top
+      if y > cached_top:
+        def rects(x): return x.rect
+        collides = point.get_rect().collidelist(map(rects, self.world.structures))
+        print collides
+        if collides == 1:
+          point.get_rect().move_ip(x, cached_top)
 
   def update(self, events):
     wave_point = self.wave[self.wave_count]
@@ -292,19 +330,29 @@ class Ocean(pygame.sprite.OrderedUpdates):
     if self.wave_count >= len(self.wave):
       self.wave_count = 0
       self.wave = get_line(self.wave_count + 1, WAVEPRECISION)
-      pygame.mixer.Sound("assets/sounds/oceanwave.wav").play()
+
 
     waveheight = (self.range * self.current_tide_level) * (1 + wave_point)
-    height = self.base + waveheight
-    self.rect = pygame.Rect((0, self.screen.get_size()[1] - height) + self.screen.get_size())
-    colliding_tiles = pygame.sprite.groupcollide(self.world.map.tiles, self, False, False, pygame.sprite.collide_rect)
-    for t in colliding_tiles:
-      t.make_dirty()
-    self.i += 1
-    for s in self.sprites():
-      s.update(events)
+    new_y = self.base + waveheight
+    print new_y
+    print self.y
+    if new_y < self.y:
+      self.ebb(new_y)
+    elif new_y > self.y:
+      self.flow(new_y)
 
-  def draw(self, surf):
-    surf.fill(OCEANCOLOR, self.rect)
-    for s in self.sprites():
-      surf.blit(s.image, s.rect)
+    self.y = new_y
+    self.rect.top = self.screen.get_size()[1] - self.y 
+    colliding_tiles = pygame.sprite.groupcollide(self.world.map.tiles, self.tips, False, False, pygame.sprite.collide_rect)
+    for t in colliding_tiles:
+      if hasattr(t, 'make_dirty'):
+        t.make_dirty()
+    self.i += 1
+    self.tips.update(events)
+    self.tips.draw(self.image)
+      
+    # now that we have the full rendered image
+    # break it up into 1 px strips
+    # adjust the y values of the points
+    # position the subsurfaces 
+

@@ -251,7 +251,7 @@ def runLevel(currentLevel):
 	world.selectable.draw(world.sand)
 	world.critters.draw(world.sand)
 	world.update(events)
-	world.ocean.draw(world.sand)
+	world.sand.blit(world.ocean.image, world.ocean.rect)
 	for sprite in world.map.tiles.sprites():
 		if hasattr(sprite, 'cannon'):
 			sprite.cannon.draw(world.sand)
