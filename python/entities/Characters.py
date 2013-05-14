@@ -316,14 +316,14 @@ class Critter(Character):
                     self.moving = True
                 if closest_target != None and self.moving:
                     self.clear_destination()
-                    self.set_destination(self.target.rect.topleft)
+                    self.set_destination(self.target.rect.center)
 
             if self.target == None:
                 self.target = self.world.get_goal()
                 if self.moving:
                     self.clear_destination()
                 if self.target != None:
-                    self.set_destination(self.target.rect.topleft)
+                    self.set_destination(self.target.rect.center)
 
 
         else:

@@ -5,7 +5,6 @@ from scipy.ndimage import gaussian_filter1d
 import numpy as np
 
 wave_image = pygame.image.load(os.path.join('assets', 'images', 'wavetip.png'))
-print wave_image
 
 SCREEN_WIDTH = 640
 SCREEN_HEIGHT = 480

@@ -2,6 +2,8 @@ import pygame, os, sys
 import random
 from engines.wave import *
 from dimensions import *
+from scipy.ndimage import gaussian_filter1d
+import numpy as np
 
 RED = pygame.Color(255, 0, 0, 255)
 ASSETDIR = "assets/images/"
@@ -261,12 +263,24 @@ class WaveTip(pygame.sprite.Sprite):
     self.rect = pygame.Rect(0,0,100,100)
 
   def update(self, events):
-    self.rect.top = self.ocean.rect.top
     if self.ani_frame >= len(self.ani[0]):
       self.ani_frame = 0
     self.image = self.ani[0][self.ani_frame]
     self.ani_frame += 1
 
+def smooth_line(l):
+  a = np.array(l)
+  x, y = a.T
+  t = np.linspace(0, 1, len(x))
+  t2 = np.linspace(0, 1, len(x))
+
+  x2 = np.interp(t2, t, x)
+  y2 = np.interp(t2, t, y)
+  sigma = 1
+  x3 = gaussian_filter1d(x2, sigma)
+  y3 = gaussian_filter1d(y2, sigma)
+
+  return zip(x3, y3)
 
 class Ocean(pygame.sprite.Sprite):
   base = 100
@@ -286,18 +300,17 @@ class Ocean(pygame.sprite.Sprite):
     self.world = World(self.screen.get_size())
     self.wave = get_line(self.wave_count + 1, WAVEPRECISION)
     self.image = pygame.Surface(SCREENSIZE)
-    self.image.fill(OCEANCOLOR)
     self.rect = self.image.get_rect()
     self.tips = pygame.sprite.OrderedUpdates()
     for i in range(0, self.screen.get_size()[0], 100):
       wave_tip = WaveTip(self)
       self.tips.add(wave_tip)
       wave_tip.rect.left = i
-    for i in range(0, SCREENSIZE[0]):
-      self.points.append(self.image.subsurface(pygame.Rect(i, 0, 1, SCREENSIZE[1])))
+      wave_tip.rect.top = 0
+    for i in range(0, SCREENSIZE[0], 1):
+      self.points.append([i, self.y])
 
   def ebb(self, y):
-    print "ebbing?" + str(self.direction)
     if self.ne:
       self.ne = False
       return
@@ -305,24 +318,36 @@ class Ocean(pygame.sprite.Sprite):
     if self.direction == 1:
       #highest point
       self.direction = -1
+    set_y = True
+    delta_y =  self.y - y
+    for point in self.points:
+      if point[1] > y:
+        point[1] -= delta_y
 
   def flow(self, y):
-    print "flowing?" + str(self.direction)
     if self.direction == -1:
       self.direction = 1
       self.current_tide_level = random.choice(TIDELEVELS)
       self.ne = True
       pygame.mixer.Sound("assets/sounds/oceanwave.wav").play()
+    possible_collisions = self.world.map.tiles.get_sprites_from_layer(1)
+    delta_y =  y - self.y
     for point in self.points:
-      cached_top = point.get_rect().top
-      if y > cached_top:
-        def rects(x): return x.rect
-        collides = point.get_rect().collidelist(map(rects, self.world.structures))
-        print collides
-        if collides == 1:
-          point.get_rect().move_ip(x, cached_top)
+      set_y = True
+      if y > point[1]:
+        for structure in possible_collisions:
+          if structure.rect.collidepoint(point[0], SCREENSIZE[1] - (point[1] + delta_y)):
+            self.point_collision(point, structure)
+            set_y = False
+      if set_y:
+        point[1] += delta_y
+
+  def point_collision(self, point, structure):
+    structure.health -= 0.1
+    print "Collided"
 
   def update(self, events):
+    canvas = pygame.Surface(self.image.get_rect().size)
     wave_point = self.wave[self.wave_count]
     if (self.i % 3 == 0):
       self.wave_count += 1
@@ -334,8 +359,6 @@ class Ocean(pygame.sprite.Sprite):
 
     waveheight = (self.range * self.current_tide_level) * (1 + wave_point)
     new_y = self.base + waveheight
-    print new_y
-    print self.y
     if new_y < self.y:
       self.ebb(new_y)
     elif new_y > self.y:
@@ -343,14 +366,48 @@ class Ocean(pygame.sprite.Sprite):
 
     self.y = new_y
     self.rect.top = self.screen.get_size()[1] - self.y 
-    colliding_tiles = pygame.sprite.groupcollide(self.world.map.tiles, self.tips, False, False, pygame.sprite.collide_rect)
+    colliding_tiles = pygame.sprite.spritecollide(self, self.world.map.tiles, False, pygame.sprite.collide_rect)
     for t in colliding_tiles:
       if hasattr(t, 'make_dirty'):
         t.make_dirty()
+    self.image.fill(OCEANCOLOR)
     self.i += 1
     self.tips.update(events)
     self.tips.draw(self.image)
-      
+    last_point = None
+    blocks = pygame.sprite.Group()
+    block_x = [0, 0]
+    building_block = False
+    def closeBlock(point):
+      block = pygame.sprite.Sprite()
+      block.image = pygame.Surface((block_x[1], SCREENSIZE[1]))
+      block.image.set_colorkey(pygame.Color(0, 0, 0))
+      block.image.blit(self.image, (block_x[0], 0, block_x[1], SCREENSIZE[1]))
+      block.rect = block.image.get_rect()
+      block.rect.top = self.y - last_point[1]
+      blocks.add(block)
+      block_x[0] = point[0]
+      block_x[1] = point[0]
+      building_block = False
+    smooth_points = smooth_line(self.points)
+    for point in smooth_points:
+      if last_point != None:
+        if last_point[1] == point[1]:
+          # continue the block
+          block_x[1] = point[0]
+          building_block = True
+          if smooth_points.index(point) == len(smooth_points) - 1:
+            closeBlock(point)
+        else:
+          block_x[1] += 1
+          closeBlock(point)
+          # finish the last block and start a new one
+
+      last_point = point
+    self.image.set_colorkey(pygame.Color(255,0,0))
+    self.image.fill(pygame.Color(255,0,0))
+    blocks.draw(self.image)
+    self.image.set_alpha(196)
     # now that we have the full rendered image
     # break it up into 1 px strips
     # adjust the y values of the points
