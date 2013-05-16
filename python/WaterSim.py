@@ -29,6 +29,8 @@ def smooth_line(l):
 
 	return y3
 
+surfaceCache = {}
+
 class Wave():
 	points = []
 	color = pygame.Color(0, 0, 255)

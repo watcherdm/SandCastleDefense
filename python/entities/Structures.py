@@ -259,6 +259,9 @@ class Pit(JoiningStructure):
 		self.rect = pygame.Rect((0, 0, BLOCKSIZE, BLOCKSIZE))
 		self.time_to_build = 300
 
+	def isPit(self):
+		return True
+
 	def adjustToLayer(self):
 		self.rect.top = self.orig_rect.top + ((self.layer - 1) * 10)
 
@@ -280,6 +283,9 @@ class Mound(JoiningStructure):
 		self.rect = pygame.Rect((0, 0, BLOCKSIZE, BLOCKSIZE))
 		self.time_to_build = 300
 
+	def isPit(self):
+		return False
+
 	def on_buildfinish(self, builder, position):
 		JoiningStructure.on_buildfinish(self, builder, position)
 		builder.spend_sand(self.health)
@@ -292,6 +298,9 @@ class Tower(Structure):
 	def __init__(self):
 		Structure.__init__(self)
 		self.create_cannon()
+
+	def isPit(self):
+		return False
 
 	def create_cannon(self):
 		self.cannon = trajectory.Cannon()
