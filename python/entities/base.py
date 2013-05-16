@@ -343,8 +343,19 @@ class Ocean(pygame.sprite.Sprite):
         point[1] += delta_y
 
   def point_collision(self, point, structure):
-    structure.health -= 0.1
-    print "Collided"
+    dmg = 0.5
+    if structure.isPit():
+      dmg = 0.1
+    structure.health -= dmg
+
+  def dirty_sand(self):
+    colliding_tiles = pygame.sprite.spritecollide(self, self.world.map.tiles, False, pygame.sprite.collide_rect)
+    for t in colliding_tiles:
+      if hasattr(t, 'make_dirty'):
+        t.make_dirty()
+        surr = t.get_surrounding()
+        for s in surr:
+          s.make_dirty()
 
   def update(self, events):
     canvas = pygame.Surface(self.image.get_rect().size)
@@ -359,17 +370,19 @@ class Ocean(pygame.sprite.Sprite):
 
     waveheight = (self.range * self.current_tide_level) * (1 + wave_point)
     new_y = self.base + waveheight
+    if self.y == new_y:
+      self.image.set_alpha(196)
+      self.dirty_sand()
+      self.i += 1
+      return
     if new_y < self.y:
       self.ebb(new_y)
     elif new_y > self.y:
       self.flow(new_y)
 
     self.y = new_y
-    self.rect.top = self.screen.get_size()[1] - self.y 
-    colliding_tiles = pygame.sprite.spritecollide(self, self.world.map.tiles, False, pygame.sprite.collide_rect)
-    for t in colliding_tiles:
-      if hasattr(t, 'make_dirty'):
-        t.make_dirty()
+    self.rect.top = self.screen.get_size()[1] - self.y
+    self.dirty_sand()
     self.image.fill(OCEANCOLOR)
     self.i += 1
     self.tips.update(events)

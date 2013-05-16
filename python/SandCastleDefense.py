@@ -10,7 +10,7 @@ from entities.map import *
 from pallette import *
 from dimensions import *
 
-version = '0.0.3'
+version = '0.0.4'
 critters = {
 	"Crab": Crab,
 	"Turtle": Turtle,
