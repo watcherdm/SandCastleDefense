@@ -168,6 +168,7 @@ class SelectableCharacter(Character):
         Character.__init__(self, name, position)
         screen = pygame.display.get_surface()
         self.available_aspects = []
+        self.abilities = {}
         self.level = 1
         self.project = None
         self.area = screen.get_rect()
