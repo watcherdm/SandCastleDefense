@@ -1,10 +1,23 @@
 import pygame
-from base import World
-import dimensions
+from base import World, load_image
+from dimensions import *
+from Menu import Control
 
-class Ability(pygame.sprite.Sprite):
-	def __init__(self, user = None, ):
-		pygame.sprite.Sprite.__init__(self)
+class AbilityButton(Control):
+	def __init__(self):
+		Control.__init__(self)
+		self.image, self.rect = load_image('ability_' + self.name + '.png', -1)
+
+	def on_click(self, event):
+		if not self in self.user.abilities:
+			pass
+		if self.user.xp > self.cost:
+			self.user.abilities[self.name] = self
+			self.user.xp -= self.cost
+
+
+class Ability():
+	def __init__(self, user = None):
 		self.world = World(SCREENSIZE)
 		self.targets = []
 		self.user = user
@@ -26,7 +39,7 @@ class Ability(pygame.sprite.Sprite):
 			self.active = False
 
 	def effect(self, world):
-		if len(self.targets) > 0:
+		if len(self.targets) > 0 and self.active:
 			for target in self.targets:
 				self.effect_tick(self, target, world)
 
@@ -49,3 +62,29 @@ class Ability(pygame.sprite.Sprite):
 			self.effect(self.world)
 		self.timeout(self.timeSinceCast)
 		self.cooldown(self.timeSinceCast)
+
+class Taunt(Ability):
+	name = "taunt"
+	timeoutTime = 100
+	cooldownTime = 500
+	targetRange = 150
+	cost = 50
+	def effect_tick(self, target, world):
+		if not hasattr(target, "orig_target"):
+			target.orig_target = target.target
+		if target.target != self.user:
+			target.orig_target = target.target
+		target.target = self.user
+
+	def get_targets(self):
+		splash = pygame.sprite.Sprite()
+		splash.rect = pygame.Rect(0, 0, self.targetRange * 2, self.targetRange * 2)
+		splash.rect.center = self.user.rect.center
+		splash.radius = self.targetRange
+		splashed = pygame.sprite.spritecollide(splash, self.world.critters, False, pygame.sprite.collide_circle)
+		return splashed
+
+	def deactivate(self):
+		Ability.deactivate(self)
+		for target in self.targets:
+			target.target = target.orig_target
