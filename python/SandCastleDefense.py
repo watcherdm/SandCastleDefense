@@ -6,6 +6,7 @@ from entities.base import *
 from entities.Characters import *
 from entities.Structures import *
 from entities.Menu import *
+from entities.Abilities import *
 from entities.map import *
 from pallette import *
 from dimensions import *
@@ -105,6 +106,9 @@ def init():
 		"pirate": Aspect("pirate", menuitems['lit'])
 	}
 
+	world.abilities = {
+		"taunt": Taunt()
+	}
 	world.gameLevels = [
 		{
 			"tiles": 20,

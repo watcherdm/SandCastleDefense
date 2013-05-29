@@ -419,6 +419,7 @@ class Aspect(Control):
     	self.world.get_selected().imagine_aspect(self)
     	self.world.menuring.update_target_buttons()
 
+
 class Label(pygame.sprite.Sprite):
 	color = BLACK
 	def __init__(self, position = (0, 0), size = (100, 100), targetAttr = "name"):
@@ -536,6 +537,12 @@ class CharacterScreen(pygame.sprite.Sprite):
 		abilities = Pane((300, 300), (700, 200))
 		abilities.color = BLUE
 		# the abilities the characters has available
+		x = 0
+		for ability in world.abilities:
+			world.abilities[ability].rect.topleft = (x, 0)
+			abilities.addControl(world.abilities[ability])
+			x += 60		
+
 		aspects = Pane((500, 0),(900, 100))
 		aspects.color = GREEN
 		x = 0
