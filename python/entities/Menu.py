@@ -370,15 +370,6 @@ class CharacterDisk(EventedSurface):
 	def __init__(self):
 		EventedSurface.__init__(self)
 
-if __name__ == '__main__':
-	# run some tests
-	test = Button()
-	menuring = MenuRing(test)
-	menuring.update()
-	menuring.add_button(test)
-	test.draw(pygame.Surface((90,90)))
-
-
 class Control(EventedSprite):
 	def __init__(self):
 		EventedSprite.__init__(self)
@@ -584,3 +575,12 @@ class CharacterScreen(pygame.sprite.Sprite):
 			self.image.fill(self.color)
 			self.panes.draw(self.image)
 			surf.blit(self.image, self.rect)
+
+if __name__ == '__main__':
+	# run some tests
+	test = Button()
+	menuring = MenuRing(test)
+	menuring.update()
+	menuring.add_button(test)
+	test.draw(pygame.Surface((90,90)))
+
