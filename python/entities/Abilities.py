@@ -4,16 +4,20 @@ from dimensions import *
 from Menu import Control
 
 class AbilityButton(Control):
-	def __init__(self):
+	def __init__(self, name):
 		Control.__init__(self)
+		self.name = name
 		self.image, self.rect = load_image('ability_' + self.name + '.png', -1)
 
 	def on_click(self, event):
+		if not self.world.has_selected():
+			pass
+		self.user = self.world.get_selected()
 		if not self in self.user.abilities:
 			pass
-		if self.user.xp > self.cost:
-			self.user.abilities[self.name] = self
-			self.user.xp -= self.cost
+		if self.user.xp > self.ability.cost:
+			self.user.abilities[self.name] = self.ability()
+			self.user.xp -= self.ability.cost
 
 
 class Ability():
@@ -88,3 +92,9 @@ class Taunt(Ability):
 		Ability.deactivate(self)
 		for target in self.targets:
 			target.target = target.orig_target
+
+class TauntButton(AbilityButton):
+	def __init__(self):
+		AbilityButton.__init__(self, "taunt")
+		self.ability = Taunt
+

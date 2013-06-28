@@ -105,9 +105,9 @@ def init():
 		"knight": Aspect("knight", menuitems['fire']),
 		"pirate": Aspect("pirate", menuitems['lit'])
 	}
-
+	tb = TauntButton()
 	world.abilities = {
-		"taunt": Taunt()
+		"taunt": tb
 	}
 	world.gameLevels = [
 		{
