@@ -98,3 +98,66 @@ class TauntButton(AbilityButton):
 		AbilityButton.__init__(self, "taunt")
 		self.ability = Taunt
 
+class Blizzard(Ability):
+	name = "blizzard"
+
+class BlizzardButton(AbilityButton):
+	def __init__(self):
+		AbilityButton.__init__(self, "blizzard")
+		self.ability = Blizzard
+
+class Cannonade(Ability):
+	name = "cannonade"
+
+class CannonadeButton(AbilityButton):
+	def __init__(self):
+		AbilityButton.__init__(self, "cannonade")
+		self.ability = Cannonade
+
+class Cleave(Ability):
+	name = "cleave"
+
+class CleaveButton(AbilityButton):
+	def __init__(self):
+		AbilityButton.__init__(self, "cleave")
+		self.ability = Cleave
+
+class Confuse(Ability):
+	name = "confuse"
+
+class ConfuseButton(AbilityButton):
+	def __init__(self):
+		AbilityButton.__init__(self, "confuse")
+		self.ability = Confuse
+
+class Poison(Ability):
+	name = "poison"
+
+class PoisonButton(AbilityButton):
+	def __init__(self):
+		AbilityButton.__init__(self, "poison")
+		self.ability = Poison
+
+class Root(Ability):
+	name = "root"
+
+class RootButton(AbilityButton):
+	def __init__(self):
+		AbilityButton.__init__(self, "root")
+		self.ability = Root
+
+class Shout(Ability):
+	name = "shout"
+
+class ShoutButton(AbilityButton):
+	def __init__(self):
+		AbilityButton.__init__(self, "shout")
+		self.ability = Shout
+
+class Teleport(Ability):
+	name = "teleport"
+
+class TeleportButton(AbilityButton):
+	def __init__(self):
+		AbilityButton.__init__(self, "teleport")
+		self.ability = Teleport
