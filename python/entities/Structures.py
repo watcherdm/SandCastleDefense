@@ -14,6 +14,7 @@ class Tile(pygame.sprite.DirtySprite):
 	layer = 0
 	x = 0
 	y = 0
+	underwater = False
 	def __init__(self, y, x, world):
 		self.structures = pygame.sprite.OrderedUpdates()
 		pygame.sprite.DirtySprite.__init__(self)
@@ -21,8 +22,17 @@ class Tile(pygame.sprite.DirtySprite):
 		self.y = y;
 		self.image = pygame.Surface((BLOCKSIZE, BLOCKSIZE))
 		self.rect = pygame.Rect((x * BLOCKSIZE, y * BLOCKSIZE, BLOCKSIZE, BLOCKSIZE));
-		self.image.fill(BEACHCOLOR)
+		self.draw()
 		self.world = world
+
+	def submerge(self):
+		self.underwater = True
+
+	def reveal(self):
+		self.underwater = False
+
+	def isUnderwater(self):
+		return self.underwater
 
 	def isStructure(self):
 		return False
@@ -83,6 +93,9 @@ class Structure(EventedSprite):
 	layer = 0
 	def isStructure(self):
 		return True
+	def takeDamage(self, dmg):
+		self.health -= dmg
+
 	def __init__(self):
 		EventedSprite.__init__(self)
 		if hasattr(images, self.sprite_file):
@@ -258,6 +271,9 @@ class Pit(JoiningStructure):
 		self.image = self.states[self.map_set][0]
 		self.rect = pygame.Rect((0, 0, BLOCKSIZE, BLOCKSIZE))
 		self.time_to_build = 300
+
+	def takeDamage(self, dmg):
+		self.health -= dmg * 0.2
 
 	def isPit(self):
 		return True

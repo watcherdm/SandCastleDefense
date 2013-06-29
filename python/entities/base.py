@@ -185,6 +185,10 @@ class World(pygame.Surface, EventedSprite):
     return self._selected
 
   def update(self, events):
+    if hasattr(self, 'tiles'):
+      for tile in self.tiles.sprites():
+        if hasattr(tile, 'reveal'):
+          tile.reveal()
     if self._supress == True:
       self._supress = False
       return
@@ -294,6 +298,7 @@ class Ocean(pygame.sprite.Sprite):
   rect = None
   y = 0
   ne = False
+  dmg = 0.2
   def __init__(self):
     pygame.sprite.Sprite.__init__(self)
     self.screen = pygame.display.get_surface()
@@ -323,6 +328,9 @@ class Ocean(pygame.sprite.Sprite):
     for point in self.points:
       if point[1] > y:
         point[1] -= delta_y
+      for character in self.world.selectable.sprites():
+        if character.rect.collidepoint(point[0], SCREENSIZE[1] - (point[1] + delta_y)):
+          self.character_sweep(point, character)
 
   def flow(self, y):
     if self.direction == -1:
@@ -337,20 +345,31 @@ class Ocean(pygame.sprite.Sprite):
       if y > point[1]:
         for structure in possible_collisions:
           if structure.rect.collidepoint(point[0], SCREENSIZE[1] - (point[1] + delta_y)):
-            self.point_collision(point, structure)
+            self.structure_collision(point, structure)
             set_y = False
+        for character in self.world.selectable.sprites():
+          if character.rect.collidepoint(point[0], SCREENSIZE[1] - (point[1] + delta_y)):
+            self.character_collision(point, character)
+
       if set_y:
         point[1] += delta_y
 
-  def point_collision(self, point, structure):
-    dmg = 0.5
-    if structure.isPit():
-      dmg = 0.1
-    structure.health -= dmg
+  def structure_collision(self, point, structure):
+    structure.takeDamage(self.dmg)
+
+  def character_collision(self, point, character):
+    character.takeDamage(self.dmg)
+    character.bumpOut()
+
+  def character_sweep(self, point, character):
+    character.takeDamage(self.dmg)
+    character.sweptOut()
 
   def dirty_sand(self):
     colliding_tiles = pygame.sprite.spritecollide(self, self.world.map.tiles, False, pygame.sprite.collide_rect)
     for t in colliding_tiles:
+      if hasattr(t, 'submerge'):
+        t.submerge()
       if hasattr(t, 'make_dirty'):
         t.make_dirty()
         surr = t.get_surrounding()
