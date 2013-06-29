@@ -16,6 +16,8 @@ class Character(EventedSprite):
     ani_speed_init = 4
     ani_speed = 30
     ani_pos = 0
+    currentTile = None
+    breathLoss = 0
     def path_to(self, target):
         angle = self.angle_between_points(self.rect.center[0], self.rect.center[1], target.rect.center[0], target.rect.center[1])
 
@@ -72,6 +74,7 @@ class Character(EventedSprite):
         hit_list = pygame.sprite.spritecollide(self, self.world.map.tiles, False)
         for hit in hit_list:
             if (hasattr(hit, "make_dirty")):
+                self.currentTile = hit
                 hit.make_dirty()
                 for t in hit.get_surrounding():
                     t.make_dirty()
@@ -161,7 +164,9 @@ class Character(EventedSprite):
         self.moving = True
         self.destinations.append(((position[0] / BLOCKSIZE) * BLOCKSIZE, (position[1] / BLOCKSIZE) * BLOCKSIZE))
 
-                
+    def takeDamage(self, dmg):
+        self.health -= dmg * 0.5
+
 class SelectableCharacter(Character):
     "A selectable controllable character"
     def __init__(self, name, position = (10,10)):
@@ -234,27 +239,58 @@ class SelectableCharacter(Character):
         if not self.building:
             Character.set_destination(self, position)
 
-    def finish_project(self):
-        print "Finishing the build with " + str(self.project.xp)
-        self.time_building = 0
-        self.xp += self.project.xp
+    def engagedInProject(self):
+        return self.building and not self.moving
+
+    def interruptProject(self):
         self.building = False
         self.project.set_structure(None)
         self.set_project(None)
+
+    def finish_project(self):
+        self.time_building = 0
+        self.xp += self.project.xp
+        self.interruptProject()
 
     def move_done(self):
         if self.project != None:
             self.building = True
 
     def update(self, events):
+        if self.health <= 0:
+            Character.update(self, events)
+            self.kill()
+            return
+
         Character.update(self, events)
-        if not self.moving and self.building:
+        if self.engagedInProject():
             self.image = self.ani[2][self.ani_pos]
             position = self.project.get_position()
             structure = self.project.get_structure()
             structure.build(self, position)
+        if self.currentTile != None and self.currentTile.isUnderwater():
+            self.breathLoss += 0.1
+            self.takeDamage(self.world.ocean.dmg + self.breathLoss)
+        else:
+            self.breathLoss = 0
 
+    def bumpOut(self):
+        """this should cause the player to stop their current activity losing any
+        previously done work and be forced to retreat to an adjacent square."""
+        if self.engagedInProject():
+            self.interruptProject()
+        pnt = list(self.rect.topleft)
+        pnt[1] -= 50
+        self.set_destination(pnt)
 
+    def sweptOut(self):
+        """this should cause the player to stop their current activity losing any
+        previously done work and be forced to retreat to an adjacent square."""
+        if self.engagedInProject():
+            self.interruptProject()
+        pnt = list(self.rect.topleft)
+        pnt[1] += 50
+        self.set_destination(pnt)
 
 class Critter(Character):
     def __init__(self, type, pos):
