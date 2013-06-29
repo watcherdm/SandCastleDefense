@@ -185,10 +185,11 @@ class World(pygame.Surface, EventedSprite):
     return self._selected
 
   def update(self, events):
-    if hasattr(self, 'tiles'):
-      for tile in self.tiles.sprites():
-        if hasattr(tile, 'reveal'):
-          tile.reveal()
+    if hasattr(self, 'map'):
+      if hasattr(self.map, 'tiles'):
+        for tile in self.map.tiles.sprites():
+          if hasattr(tile, 'reveal'):
+            tile.reveal()
     if self._supress == True:
       self._supress = False
       return
