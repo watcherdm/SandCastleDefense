@@ -1,7 +1,7 @@
 from math import cos, sin, sqrt, asin, pow, tan, pi, atan2
 import pygame, sys
 from itertools import combinations
-from entities.Characters import *
+from python.entities.Characters import *
 gravity = 9.81
 view_angle = 30
 black = pygame.Color(0, 0, 0)
@@ -25,7 +25,7 @@ def get_distance_traveled(velocity, height, angle):
 
 def y_velocity(velocity, angle):
 	radians = to_radians(angle)
-	x = (v * cos(radians)) * 0.1
+	x = (velocity * cos(radians)) * 0.1
 	vy = velocity * sin(radians) - gravity * x / velocity * cos(radians)
 	return vy
 
@@ -66,7 +66,7 @@ def angle_between_points(x1, y1, x2, y2):
 	return  to_angle(rads)
 
 def distance_between_points(x1, y1, x2, y2):
-	return sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2))
+	return sqrt((x2 - x1)**2 + (y2 - y1)**2)
 
 def angular_trajectory(start, angle, direction, velocity):
 	shadow = []
@@ -88,6 +88,62 @@ def angular_trajectory(start, angle, direction, velocity):
 def time_in_air(distance):
 	return sqrt((2 * distance) / gravity)
 
+#Universal projectile class. Is inherited by specific child projectiles such as the Cannonball.
+class Projectile:  
+	def __init__(self):
+		self.r = [[[0,0,0],[0,0,0]]]
+		self.localtime = 0
+		self.timestep = .1
+		pass
+	
+	def rk4(self, diff_eqs, diff_eqs_args):
+		
+		def delta_eqs(delta_r, delta_t):
+			return(diff_eqs(self.r + delta_r, self.localtime + delta_t, diff_eqs_args))
+		
+		def scalar_multiply(r, value):
+			for i in range(2):
+				for j in range(3):
+					r[i, j] *= value
+			return r
+		
+		def scalar_add():
+		
+		while self.r[0,0,2] >= 0 and self.r[0,0,2] <= 1000:
+			r_next = [[0,0,0],[0,0,0]]
+			k1, k2, k3, k4 = [],[],[],[]
+			k1 = scalar_multiply(delta_eqs(0, 0), self.timestep)
+			k2 = scalar_multiply()
+
+			
+			
+					
+					
+			
+		pass
+
+# Basic projectile type. Is called with a physical constants object instance so that things like
+# Gravity and windspeed can be changed for different sessions through the Physics object.
+class Cannonball(Projectile):  
+	def __init__(self, phys_constants):
+		self.P = phys_constants
+		self.diff_eqs_args = {}
+	
+	def diff_eqs(self, r, t, *kwargs):
+		return [[r[-1,1]],[0, 0, self.P.gravity]]
+	
+	def calculate_trajectory(self):
+		rk4(self.diff_eqs, self.diff_eqs_args)
+	
+# Contains the physical constants like Gravity. Should be initialized at the start of play and issued
+# as an argument to every projectile type.	
+class Physics:
+	def __init__(self):
+		self.gravity = -9.81
+		self.wind = [0,0,0]
+#		self.force_from_his_noodley_appendage = [0,0,0]  
+
+	
 
 class Cannon:
 	def __init__(self):
