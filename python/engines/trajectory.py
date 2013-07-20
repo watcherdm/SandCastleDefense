@@ -2,6 +2,7 @@ from math import cos, sin, sqrt, asin, pow, tan, pi, atan2
 import pygame, sys
 from itertools import combinations
 from python.entities.Characters import *
+import numpy as np
 gravity = 9.81
 view_angle = 30
 black = pygame.Color(0, 0, 0)
@@ -91,49 +92,37 @@ def time_in_air(distance):
 #Universal projectile class. Is inherited by specific child projectiles such as the Cannonball.
 class Projectile:  
 	def __init__(self):
-		self.r = [[[0,0,0],[0,0,0]]]
+		self.r_set = np.array([[[0,0,0],[0,0,0]]])
 		self.localtime = 0
 		self.timestep = .1
 		pass
 	
 	def rk4(self, diff_eqs, diff_eqs_args):
 		
-		def delta_eqs(delta_r, delta_t):
-			return(diff_eqs(self.r + delta_r, self.localtime + delta_t, diff_eqs_args))
-		
-		def scalar_multiply(r, value):
-			for i in range(2):
-				for j in range(3):
-					r[i, j] *= value
-			return r
-		
-		def scalar_add():
-		
-		while self.r[0,0,2] >= 0 and self.r[0,0,2] <= 1000:
-			r_next = [[0,0,0],[0,0,0]]
-			k1, k2, k3, k4 = [],[],[],[]
-			k1 = scalar_multiply(delta_eqs(0, 0), self.timestep)
-			k2 = scalar_multiply()
+		while self.r_set[-1,0,2] >= 0 and self.r_set[-1,0,2] <= 1000:
+			k1 = diff_eqs(self.r_set[-1], self.localtime, diff_eqs_args)*self.timestep
+			k2 = diff_eqs(self.r_set[-1] + .5*k1, self.localtime + .5*self.timestep, diff_eqs_args)*self.timestep
+			k3 = diff_eqs(self.r_set[-1] + .5*k2, self.localtime + .5*self.timestep, diff_eqs_args)*self.timestep
+			k4 = diff_eqs(self.r_set[-1] + k3, self.localtime + self.timestep, diff_eqs_args)*self.timestep			
+			r_next = np.array([self.r_set[-1] + (k1 + 2*k2 + 2*k3 + k4)/6])
+			self.r_set = np.append(self.r_set, r_next, axis = 0)
+					
+					
 
-			
-			
-					
-					
-			
-		pass
 
 # Basic projectile type. Is called with a physical constants object instance so that things like
 # Gravity and windspeed can be changed for different sessions through the Physics object.
 class Cannonball(Projectile):  
 	def __init__(self, phys_constants):
+		Projectile.__init__(self)
 		self.P = phys_constants
 		self.diff_eqs_args = {}
 	
 	def diff_eqs(self, r, t, *kwargs):
-		return [[r[-1,1]],[0, 0, self.P.gravity]]
+		return np.append([r[1]],[[0, 0, self.P.gravity]], axis = 0)
 	
 	def calculate_trajectory(self):
-		rk4(self.diff_eqs, self.diff_eqs_args)
+		self.rk4(self.diff_eqs, self.diff_eqs_args)
 	
 # Contains the physical constants like Gravity. Should be initialized at the start of play and issued
 # as an argument to every projectile type.	
