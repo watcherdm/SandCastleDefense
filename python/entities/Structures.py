@@ -89,8 +89,14 @@ class Tile(pygame.sprite.DirtySprite):
 		return surrounding
 
 class Structure(EventedSprite):
+	w = 50
+	h = 50
 	height = 0
 	layer = 0
+	offset = {
+		'x' : 0,
+		'y' : 0
+	}
 	def isStructure(self):
 		return True
 	def takeDamage(self, dmg):
@@ -101,7 +107,7 @@ class Structure(EventedSprite):
 		if hasattr(images, self.sprite_file):
 			self.states = images[self.sprite_file].copy()
 		else:
-			self.states = load_sliced_sprites(50, 50, self.sprite_file)
+			self.states = load_sliced_sprites(self.w, self.h, self.sprite_file)
 			images[self.sprite_file] = self.states
 		self.init_sprite()
 		self.tile = None
@@ -114,7 +120,7 @@ class Structure(EventedSprite):
 
 	def init_sprite(self):
 		self.image = self.states[0][0]
-		self.rect = pygame.Rect((0,0, BLOCKSIZE, BLOCKSIZE))
+		self.rect = pygame.Rect((0,0, self.w, self.h))
 
 	def can_build_at(self, pos):
 		print pos
@@ -126,15 +132,19 @@ class Structure(EventedSprite):
 	def can_build_on(self, structure):
 		return structure.__class__ in self.builds_on
 
+	def apply_offset(self, position):
+		return (position[0] + self.offset['x'], position[1] + self.offset['y'])
+
 	def set_position(self, position):
 		if self.rect != None and position != None:
 			self.rect.topleft = position
 		self.orig_rect = pygame.Rect(self.rect)
+		self.rect.topleft = self.apply_offset(position)
 
 	def add_to_world(self):
 		self.world.map.addStructure(self)
 		self.world.structures.add(self)
-		
+
 	def on_buildfinish(self, builder, position):
 		self.set_position(position)
 		self.add_to_world()
@@ -310,6 +320,11 @@ class Tower(Structure):
 	"""
 	Tower abstract class handles cannon creation and range establishment
 	"""
+	h = 125
+	offset = {
+		'x': 0,
+		'y': -75
+	}
 	builds_on = [Tile, Mound]
 	def __init__(self):
 		Structure.__init__(self)

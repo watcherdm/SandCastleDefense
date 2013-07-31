@@ -1,0 +1,9 @@
+{
+  "name": "gamecore",
+  "version": "0.0.0",
+  "commit": "d7c59d2ff7fa1b8cb9ff0e7e7e165383fda7dcaf",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/playcraft/gamecore.js.git"
+  }
+}

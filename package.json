@@ -4,6 +4,14 @@
 	"version": "0.0.0",
 	"private": true,
 	"dependencies": {
+    "bower": "*",
+    "grunt-cli": "*",
+  	"grunt-contrib-jshint": "*",
+    "grunt-contrib-coffee": "*",
+    "grunt-blanket": "*",
+    "grunt-contrib-jasmine": "*",
+    "grunt-contrib-connect": "*",
+    "grunt-template-jasmine-requirejs": "*",
 		"connect": "*",
 		"optimist": "0.2.x"
 	}
