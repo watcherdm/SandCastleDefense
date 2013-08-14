@@ -1,4 +1,5 @@
 from math import cos, sin, sqrt, asin, pow, tan, pi, atan2
+from math import radians as rad
 import pygame, sys
 from itertools import combinations
 from python.entities.Characters import *
@@ -29,7 +30,6 @@ def y_velocity(velocity, angle):
 	x = (velocity * cos(radians)) * 0.1
 	vy = velocity * sin(radians) - gravity * x / velocity * cos(radians)
 	return vy
-
 
 def x_velocity(velocity, angle):
 	radians = to_radians(angle)
@@ -92,20 +92,41 @@ def time_in_air(distance):
 #Universal projectile class. Is inherited by specific child projectiles such as the Cannonball.
 class Projectile:  
 	def __init__(self):
-		self.r_set = np.array([[[0,0,0],[0,0,0]]])
+		self.r_set = np.array([[[0,0,0],[0,0,0]]], np.float)
 		self.localtime = 0
 		self.timestep = .1
+		self.current_frame = 0
+		self.hit_status = False
 		pass
 	
+	def get_current_frame(self):
+		return self.r_set[self.current_frame]
+	
+	def frame_step(self):
+		if self.hit_status == False:
+			if self.current_frame + 1 < np.shape(self.r_set)[0]:
+				self.current_frame += 1
+			else:
+				self.hit_status = True
+		else:
+			pass
+	
+	def set_initial_conditions(self, position, azimuth, inclination, velocity): #rotational coordinates use standard mathematical spherical coordinate conventions (azimuth rotates about vertical axis)
+		self.r_set[-1,0,:] = position
+		self.r_set[-1,1,:] = [velocity*sin(inclination)*cos(azimuth), velocity*sin(inclination)*sin(azimuth), velocity*cos(inclination)]
+	
 	def rk4(self, diff_eqs, diff_eqs_args):
-		
-		while self.r_set[-1,0,2] >= 0 and self.r_set[-1,0,2] <= 1000:
+		r_next = [[[0,0,1],[0,0,0]]]		#Place-holder to satisfy the first iteration of the while loop
+		while r_next[0][0][2] >= 0 and r_next[0][0][2] <= 1000:		
+ 			if type(r_next) == np.ndarray:			#Placing the append at the start of the loop means that the loop-breaking boundary condition doesn't get appended to r_set
+ 				self.r_set = np.append(self.r_set, r_next, axis = 0)
+ 			else:
+ 				pass
 			k1 = diff_eqs(self.r_set[-1], self.localtime, diff_eqs_args)*self.timestep
 			k2 = diff_eqs(self.r_set[-1] + .5*k1, self.localtime + .5*self.timestep, diff_eqs_args)*self.timestep
 			k3 = diff_eqs(self.r_set[-1] + .5*k2, self.localtime + .5*self.timestep, diff_eqs_args)*self.timestep
 			k4 = diff_eqs(self.r_set[-1] + k3, self.localtime + self.timestep, diff_eqs_args)*self.timestep			
 			r_next = np.array([self.r_set[-1] + (k1 + 2*k2 + 2*k3 + k4)/6])
-			self.r_set = np.append(self.r_set, r_next, axis = 0)
 					
 					
 
@@ -113,7 +134,7 @@ class Projectile:
 # Basic projectile type. Is called with a physical constants object instance so that things like
 # Gravity and windspeed can be changed for different sessions through the Physics object.
 class Cannonball(Projectile):  
-	def __init__(self, phys_constants):
+	def __init__(self, phys_constants, *kwargs):
 		Projectile.__init__(self)
 		self.P = phys_constants
 		self.diff_eqs_args = {}
@@ -123,13 +144,52 @@ class Cannonball(Projectile):
 	
 	def calculate_trajectory(self):
 		self.rk4(self.diff_eqs, self.diff_eqs_args)
+
+class RPG(Projectile):  
+	def __init__(self, phys_constants):
+		Projectile.__init__(self)
+		self.P = phys_constants
+		self.diff_eqs_args = {}
+		self.thrust = 12
+		self.drag_coef = .15
 	
+	def diff_eqs(self, r, t, *kwargs):
+		if t < 5:
+			propulsion = np.array([[0,0,0], self.thrust*r[1]/np.linalg.norm(r[1])]) #Calculate thruster contribution to acceleration
+		else:
+			propulsion = np.array([[0,0,0],[0,0,0]])
+		ASV = self.P.wind - r[1] #Air speed velocity
+		wind_resistance = np.array([[0,0,0], self.drag_coef*ASV/np.linalg.norm(ASV)]) #Calculate drag contribution to acceleration
+		falling = np.array([[0,0,0],[0,0,self.P.gravity]])
+		momentum = np.array([r[1],[0,0,0]])
+		return momentum + falling + wind_resistance + propulsion
+
+	def calculate_trajectory(self):
+		self.rk4(self.diff_eqs, self.diff_eqs_args)
+	
+class Homing(Projectile):
+	def __init__(self, phys_constants):
+		Projectile.__init__(self)
+		self.P = phys_constants
+		self.diff_eqs_args = {}
+		self.thrust = 12
+		self.target = np.array([0,0,300])
+		
+	def diff_eqs(self, r, t, *kwargs):
+		homing_vector = self.target - r[0]
+		propulsion = np.array([[0,0,0], self.thrust * homing_vector/np.linalg.norm(homing_vector)])
+		falling = np.array([[0,0,0],[0,0,self.P.gravity]])
+		momentum = np.array([r[1],[0,0,0]])
+		return momentum + falling + propulsion
+		
+	def calculate_trajectory(self):
+		self.rk4(self.diff_eqs, self.diff_eqs_args)
 # Contains the physical constants like Gravity. Should be initialized at the start of play and issued
 # as an argument to every projectile type.	
 class Physics:
 	def __init__(self):
 		self.gravity = -9.81
-		self.wind = [0,0,0]
+		self.wind = np.array([0,0,0])
 #		self.force_from_his_noodley_appendage = [0,0,0]  
 
 	
@@ -137,7 +197,11 @@ class Physics:
 class Cannon:
 	def __init__(self):
 		print "Initializing cannon"
+		self.projectile_type = Cannonball
+		self.physics_variables = Physics()
 		self._targets = []
+		self.inclination = 0
+		self.azimuth = 180
 		self.aof = 180
 		self.rof = 10
 		self.vel = 3
@@ -209,6 +273,14 @@ class Cannon:
 		cy = self.convert_y()
 		r = self.range + self.height
 		return pow(x - cx, 2) + pow(y - cy, 2) < pow(r, 2)
+	
+	def fire_projectile(self, *kwargs):
+		self.projectiles.append(self.projectile_type(self.physics_variables, kwargs))
+		projectile = self.projectiles[-1]
+		projectile.set_initial_conditions([self.center[0], self.center[1], self.height], rad(self.azimuth), rad(self.inclination), self.vel)
+		projectile.calculate_trajectory()
+		
+		
 
 	def update(self, events):
 		range = self.range + self.height
@@ -227,32 +299,47 @@ class Cannon:
 		for event in events:
 			if event.type == self.fireTrigger:
 				if self.shotRequested:
-					projectile = angular_trajectory(self.get_3d_point(), self.aof, self.ang, self.vel)
-					self.projectiles.append([projectile[0], projectile[1]])
+					self.fire_projectile()
+# 					projectile = angular_trajectory(self.get_3d_point(), self.aof, self.ang, self.vel)
+# 					self.projectiles.append([projectile[0], projectile[1]])
 					self.shotRequested = False	
-		if self.ang < -180:
-			self.ang = 180
-		if self.ang > 180:
-			self.ang = -180
-		if self.aof > 180:
-			self.aof = 180
+# 		if self.ang < -180:
+# 			self.ang = 180
+# 		if self.ang > 180:
+# 			self.ang = -180
+# 		if self.aof > 180:
+# 			self.aof = 180
 		if self.aof < 90:
 			self.aof = 90
+		if self.inclination < 0:
+			self.inclination = 0
+		if self.inclination > 90:
+			self.inclination = 90
 
 		for projectile in self.projectiles:
-			t = projectile[0]
-			s = projectile[1]
-			if len(t) != 0:
-				pos = self.to3d(t[0], view_angle)
-				spos = self.to3d(s[0], view_angle)
-				projectile[0] = t[1:]
-				projectile[1] = s = s[1:]
-				if len(projectile[0]) == 0:
-					self.hits.append(pos)
-				pygame.draw.circle(self.canvas, red, pos, self.projectile_radius)
-				pygame.draw.circle(self.canvas, grey, spos, self.projectile_radius)
+# 			t = projectile[0]
+# 			s = projectile[1]
+# 			if len(t) != 0:
+# 				pos = self.to3d(t[0], view_angle)
+# 				spos = self.to3d(s[0], view_angle)
+# 				projectile[0] = t[1:]
+# 				projectile[1] = s = s[1:]
+# 				if len(projectile[0]) == 0:
+# 					self.hits.append(pos)
+# 				pygame.draw.circle(self.canvas, red, pos, self.projectile_radius)
+# 				pygame.draw.circle(self.canvas, grey, spos, self.projectile_radius)
+# 			else:
+# 				self.projectiles.remove(projectile)
+			if projectile.hit_status == False:
+				pygame.draw.circle(self.canvas, red, self.to3d(projectile.get_current_frame[0], view_angle), self.projectile_radius)
+				pygame.draw.circle(self.canvas, grey, self.to3d([projectile.get_current_frame[0,0], projectile.get_current_frame[0,1], 0], view_angle), self.projectile_radius)
+				projectile.frame_step()
 			else:
+				self.hits.append(self.to3d(projectile.get_current_frame[0], view_angle))
 				self.projectiles.remove(projectile)
+			
+
+				
 
 		if len(self.hits) > 20:
 			self.hits = self.hits[1:]
