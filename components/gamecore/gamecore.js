@@ -1,10 +1,9 @@
 /**
  * gamecore.js - Copyright 2012 Playcraft Labs, Inc. (see licence.txt)
  */
-define([], function(){
 
-    window.gamecore =
-    {
+define([], function(){
+    var gamecore = {
         hasOwn:Object.prototype.hasOwnProperty,
 
         isFunction:function (obj)
@@ -1329,11 +1328,10 @@ define([], function(){
                     var check = new Audio();
                     if (check.canPlayType('audio/ogg')) this.canPlayOgg = true;
                     if (check.canPlayType('audio/mpeg')) this.canPlayMP3 = true;
-                    if (check.canPlayType('audio/x-wav')) this.canPlayWav = true;                
-                } catch (ex) {
-                    console.error('Audio not supported');
+                    if (check.canPlayType('audio/x-wav')) this.canPlayWav = true;
+                } catch(ex) {
+                    // don't do anything
                 }
-
                 this.requestAnimFrame = (function ()
                 {
                     var request =
@@ -3361,5 +3359,5 @@ define([], function(){
             return '(?)';
         }
     };
-    return window.gamecore;
+    return gamecore;
 });

@@ -2,11 +2,12 @@
   require.config({
     baseUrl: 'src-cov',
     paths: {
-      gamecore: '../lib/gamecore'
+      gamecore: '../lib/gamecore',
+      underscore: '../lib/underscore'
     },
-    shims: {
-      gamecore: {
-        "export": 'gamecore'
+    shim: {
+      underscore: {
+        exports: '_'
       }
     }
   });

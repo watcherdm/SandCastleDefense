@@ -4,11 +4,12 @@ _$jscoverage['src/main.js'].source=['(function() {',
 '  require.config({',
 '    baseUrl: \'src-cov\',',
 '    paths: {',
-'      gamecore: \'../lib/gamecore\'',
+'      gamecore: \'../lib/gamecore\',',
+'      underscore: \'../lib/underscore\'',
 '    },',
-'    shims: {',
-'      gamecore: {',
-'        "export": \'gamecore\'',
+'    shim: {',
+'      underscore: {',
+'        exports: \'_\'',
 '      }',
 '    }',
 '  });',
@@ -23,11 +24,12 @@ _$jscoverage['src/main.js'][2]=0;
 require.config({
     baseUrl: 'src-cov',
     paths: {
-      gamecore: '../lib/gamecore'
+      gamecore: '../lib/gamecore',
+      underscore: '../lib/underscore'
     },
-    shims: {
-      gamecore: {
-        "export": 'gamecore'
+    shim: {
+      underscore: {
+        exports: '_'
       }
     }
   });

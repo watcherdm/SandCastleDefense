@@ -1,6 +1,7 @@
 {
   "name": "Sand Castle Defense",
   "dependencies": {
+    "underscore": "*",
     "gamecore": "playcraft/gamecore.js"
   }
 }
