@@ -139,15 +139,18 @@ class Structure(EventedSprite):
 		if self.rect != None and position != None:
 			self.rect.topleft = position
 		self.orig_rect = pygame.Rect(self.rect)
-		self.rect.topleft = self.apply_offset(position)
+		adjusted_position = self.apply_offset(position)
+		print adjusted_position
+		self.rect.topleft = adjusted_position
+		self.orig_rect = self.rect
 
 	def add_to_world(self):
 		self.world.map.addStructure(self)
 		self.world.structures.add(self)
 
 	def on_buildfinish(self, builder, position):
-		self.set_position(position)
 		self.add_to_world()
+		self.set_position(position)
 		self.adjustToLayer()
 		self.health = self.max_health
 		builder.finish_project()
