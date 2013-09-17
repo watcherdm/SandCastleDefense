@@ -132,26 +132,23 @@ class Structure(EventedSprite):
 	def can_build_on(self, structure):
 		return structure.__class__ in self.builds_on
 
-	def apply_offset(self, position):
-		return (position[0] + self.offset['x'], position[1] + self.offset['y'])
-
 	def set_position(self, position):
 		if self.rect != None and position != None:
 			self.rect.topleft = position
 		self.orig_rect = pygame.Rect(self.rect)
-		adjusted_position = self.apply_offset(position)
-		print adjusted_position
-		self.rect.topleft = adjusted_position
-		self.orig_rect = self.rect
+
+	def adjustToOffset(self):
+		self.rect.top = self.rect.top + self.offset['y']
 
 	def add_to_world(self):
 		self.world.map.addStructure(self)
 		self.world.structures.add(self)
 
 	def on_buildfinish(self, builder, position):
-		self.add_to_world()
 		self.set_position(position)
+		self.add_to_world()
 		self.adjustToLayer()
+		self.adjustToOffset()
 		self.health = self.max_health
 		builder.finish_project()
 
@@ -169,6 +166,7 @@ class Structure(EventedSprite):
 	def update(self, events):
 		EventedSprite.update(self, events)
 		self.adjustToLayer()
+		self.adjustToOffset()
 		if self.health < self.max_health:
 			health_bar_x = 0
 			health_bar_y = 50 - 6
@@ -189,6 +187,7 @@ class Structure(EventedSprite):
 			if sprite.layer > 0:
 				self.world.map.tiles.change_layer(sprite, sprite.layer - 1)
 				sprite.height -= height
+
 
 class Goal(Structure):
 	builds_on = [Tile]
@@ -359,7 +358,7 @@ class Tower(Structure):
 class ArcherTower(Tower):
 	rof = pygame.FASTFIRE
 	sprite_file = "archer_tower.png"
-	height = 30
+	height = 75
 	map_set = 0
 	time_to_build = 200
 	max_health = 200
@@ -371,7 +370,7 @@ class ArcherTower(Tower):
 class WizardTower(Tower):
 	rof = pygame.MEDFIRE
 	sprite_file = "mage_tower.png"
-	height = 40
+	height = 75
 	map_set = 0
 	time_to_build = 300
 	max_health = 300
