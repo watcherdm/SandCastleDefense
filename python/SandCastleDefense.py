@@ -49,9 +49,6 @@ def show_character_screen():
 	world.cs.draw(world.sand)
 
 def show_splash_screen():
-	# start new game
-	# continue game
-	# exit
 	world = World(SCREENSIZE)
 	world.sand.fill(BEACHCOLOR)
 	if world.cs != None:
@@ -224,7 +221,7 @@ def runLevel(currentLevel):
 	if len(world.structures.sprites()) >=  wave_points:
 		#send wave
 		points = wave_points + (len(world.map.tiles.get_sprites_from_layer(1)) / level["waves"])
-		while points > 0:
+		if points > 0:
 			critterConstructor = critters[random.choice(level["critters"])]
 			critter = critterConstructor(world.map.getRandomTile())
 			world.critters.add(critter)

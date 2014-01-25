@@ -1,7 +1,7 @@
 from math import cos, sin, sqrt, asin, pow, tan, pi, atan, atan2,degrees,radians
 import pygame, sys
 from itertools import combinations
-from python.entities.Characters import *
+from entities.Characters import *
 import numpy as np
 gravity = 9.81
 view_angle = 30
@@ -209,10 +209,8 @@ class Cannon:
 		self._targets = []
 		self.inclination = 0
 		self.azimuth = 180
-		self.aof = 180
-		self.rof = 10
+		self.rof = 5
 		self.vel = 3
-		self.ang = 180
 		self.height = 0
 		self.hits = []
 		self.projectiles = []
@@ -257,15 +255,11 @@ class Cannon:
 	def remove_target(self, target):
 		self._targets.remove(target)
 
-	def angle_to_target(self, target, for_z = False):
+	def angle_to_target(self, target):
 		x1 = self.center[0]
-		if for_z:
-			y1 = self.height
-			y2 = 0 #hit the ground
-		else:
-			y1 = self.convert_y()
-			y2 = target.rect.center[1]
+		y1 = self.center[1]
 		x2 = target.rect.center[0]
+		y2 = target.rect.center[1]
 		val = angle_between_points(x1, y1, x2, y2)
 		return val
 
@@ -308,7 +302,7 @@ class Cannon:
 	def fire_projectile(self, *kwargs):
 		self.projectiles.append(self.projectile_type(self.physics_variables, kwargs))
 		projectile = self.projectiles[-1]
-		projectile.set_initial_conditions([self.center[0], self.center[1], self.height], rad(self.azimuth), rad(self.inclination), self.vel)
+		projectile.set_initial_conditions([self.center[0], self.center[1], self.height], radians(self.azimuth), radians(self.inclination), self.vel)
 		projectile.calculate_trajectory()
 		
 		
@@ -317,17 +311,14 @@ class Cannon:
 		range = self.range + self.height
 		to_attack = None
 		for target in self.get_targets():
-			if self.in_range(target):
+			if self.in_range(target) and len(self.projectiles) < 5:
 				to_attack = target
-				self.ang = self.angle_to_target(target)
+				self.azimuth = self.angle_to_target(target)
 				distance_x = self.distance_to(target)
 				distance = self.real_distance_to(target)
-				if distance_x < self.height:
-					self.vel = distance_x / 12
-				else:
-					self.vel = distance / 12
-				aof = self.aof_to_target(self.vel, target)
-				self.aof = aof
+				self.vel = distance / 6
+				inclination = 45
+				self.inclination = inclination
 				self.shotRequested = True
 				continue
 
@@ -338,25 +329,23 @@ class Cannon:
 				if self.shotRequested:
 					self.fire_projectile()
 					self.shotRequested = False	
-		if self.aof < 90:
-			self.aof = 90
 		if self.inclination < 0:
 			self.inclination = 0
 		if self.inclination > 90:
 			self.inclination = 90
 
 		for projectile in self.projectiles:
+			frames = projectile.get_current_frame()
 			if projectile.hit_status == False:
-				pygame.draw.circle(self.canvas, red, self.to3d(projectile.get_current_frame[0], view_angle), self.projectile_radius)
-				pygame.draw.circle(self.canvas, grey, self.to3d([projectile.get_current_frame[0,0], projectile.get_current_frame[0,1], 0], view_angle), self.projectile_radius)
+				pygame.draw.circle(self.canvas, red, self.to3d(frames[0], view_angle), self.projectile_radius)
+				pygame.draw.circle(self.canvas, grey, self.to3d(frames[0], view_angle), self.projectile_radius)
+				projectile.frame_step()
+				projectile.frame_step()
 				projectile.frame_step()
 			else:
-				self.hits.append(self.to3d(projectile.get_current_frame[0], view_angle))
+				self.hits.append(self.to3d(frames[0], view_angle))
 				self.projectiles.remove(projectile)
 			
-
-				
-
 		if len(self.hits) > 20:
 			self.hits = self.hits[1:]
 
@@ -371,8 +360,7 @@ class Cannon:
 		pygame.draw.circle(self.canvas, grey, self.to3d(spoint, view_angle) , self.range + self.height, 1)
 
 	def draw(self, surf):
-		if self.world.debug:
-			self.debug_draw()
+		self.debug_draw()
 		surf.blit(self.canvas, (0,0))
 
 pygame.FASTFIRE = 25
@@ -414,9 +402,9 @@ def test():
 	moveCannon = True
 	while True:
 
-		distance = get_distance_traveled(cannon.vel, cannon.height, cannon.aof)
-		currentAngle = f.render("direction " + str(cannon.ang), False, black)
-		currentAof = f.render("angle " + str(cannon.aof), False, black)
+		distance = get_distance_traveled(cannon.vel, cannon.height, cannon.inclination)
+		currentAngle = f.render("direction " + str(cannon.azimuth), False, black)
+		currentAof = f.render("angle " + str(cannon.inclination), False, black)
 		currentVelocity = f.render("velocity " + str(cannon.vel), False, black)
 		currentPoint = f.render("location " + str(cannon.get_3d_point()), False, black)
 		currentRange = f.render("range " + str(distance), False, black)
@@ -433,17 +421,17 @@ def test():
 
 		cannon.update(events)
 		if keysHeld[276]:
-			cannon.ang += 2
+			cannon.azimuth += 2
 		if keysHeld[275]:
-			cannon.ang -= 2
+			cannon.azimuth -= 2
 		if keysHeld[274]:
 			cannon.vel -= 0.1
 		if keysHeld[273]:
 			cannon.vel += 0.1
 		if keysHeld[120]:
-			cannon.aof += 0.1
+			cannon.inclination += 0.1
 		if keysHeld[122]:
-			cannon.aof -= 0.1
+			cannon.inclination -= 0.1
 		if keysHeld[113]:
 			cannon.height += 1
 			if cannon.height > 120:

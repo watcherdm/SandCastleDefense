@@ -385,6 +385,7 @@ class Jenai(SelectableCharacter):
         self.move_speed = 5
         self.ani_speed_init = 6
         self.add_sand(10000)
+        self.imagine_aspect(self.world.aspects["wizard"])
 
 class Steve(SelectableCharacter):
     def __init__(self, position = (0, 128)):
@@ -396,6 +397,7 @@ class Steve(SelectableCharacter):
         self.move_speed = 5.2
         self.ani_speed_init = 6
         self.add_sand(10000)
+        self.imagine_aspect(self.world.aspects["knight"])
 
 class Crab(Critter):
     height = 16

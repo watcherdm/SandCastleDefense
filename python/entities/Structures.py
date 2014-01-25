@@ -18,8 +18,8 @@ class Tile(pygame.sprite.DirtySprite):
 	def __init__(self, y, x, world):
 		self.structures = pygame.sprite.OrderedUpdates()
 		pygame.sprite.DirtySprite.__init__(self)
-		self.x = x;
-		self.y = y;
+		self.x = x
+		self.y = y
 		self.image = pygame.Surface((BLOCKSIZE, BLOCKSIZE))
 		self.rect = pygame.Rect((x * BLOCKSIZE, y * BLOCKSIZE, BLOCKSIZE, BLOCKSIZE));
 		self.draw()
@@ -44,9 +44,12 @@ class Tile(pygame.sprite.DirtySprite):
 
 	def draw(self):
 		self.image.fill(BEACHCOLOR)
+		pygame.draw.rect(self.image, pygame.Color(0,0,0), self.image.get_rect(), 4)
 
 	def addStructure(self, structure):
+		print 'structure added'
 		self.structures.add(structure)
+		print len(self.structures)
 
 	def get_surrounding(self):
 		self.center = self.rect.center
@@ -343,17 +346,27 @@ class Tower(Structure):
 		self.cannon.damage = self.damage
 		self.cannon.fireTrigger = self.rof
 		
+	def setCannonPosition(self):
+		center = self.rect.center
+		if self.offset['y']:
+			center = (center[0], center[1] - self.offset['y'] - (BLOCKSIZE / 2))
+		self.cannon.setPosition(center)
+		self.cannon.height = self.height
+
 	def update(self, events):
 		Structure.update(self, events)
 		center = self.rect.center
 		if hasattr(self, "orig_rect"):
 			center = self.orig_rect.center
-		self.cannon.setPosition(center)
-		self.cannon.height = self.height
+		
+		self.setCannonPosition()
 		for event in events:
 			if event.type == pygame.KEYDOWN:
 				self.cannon.shotRequested = True
 		self.cannon.update(events)
+		for hit in self.cannon.hits:
+			print "HIT"
+			print hit
 
 class ArcherTower(Tower):
 	rof = pygame.FASTFIRE

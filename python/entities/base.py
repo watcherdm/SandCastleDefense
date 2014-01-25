@@ -395,10 +395,10 @@ class Ocean(pygame.sprite.Sprite):
       self.dirty_sand()
       self.i += 1
       return
-    if new_y < self.y:
-      self.ebb(new_y)
-    elif new_y > self.y:
-      self.flow(new_y)
+    # if new_y < self.y:
+    #   #self.ebb(new_y)
+    # elif new_y > self.y:
+    #   #self.flow(new_y)
 
     self.y = new_y
     self.rect.top = self.screen.get_size()[1] - self.y
@@ -426,7 +426,6 @@ class Ocean(pygame.sprite.Sprite):
     for point in smooth_points:
       if last_point != None:
         if last_point[1] == point[1]:
-          # continue the block
           block_x[1] = point[0]
           building_block = True
           if smooth_points.index(point) == len(smooth_points) - 1:
@@ -434,15 +433,9 @@ class Ocean(pygame.sprite.Sprite):
         else:
           block_x[1] += 1
           closeBlock(point)
-          # finish the last block and start a new one
 
       last_point = point
     self.image.set_colorkey(pygame.Color(255,0,0))
     self.image.fill(pygame.Color(255,0,0))
     blocks.draw(self.image)
     self.image.set_alpha(196)
-    # now that we have the full rendered image
-    # break it up into 1 px strips
-    # adjust the y values of the points
-    # position the subsurfaces 
-
