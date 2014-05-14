@@ -15,7 +15,6 @@ class Map:
 		rol = range(len(l))
 		self.map = []
 		self.tiles = pygame.sprite.LayeredDirty()
-
 		for j in rol:
 			self.map.append([None] * l1)
 		for j in rol:
@@ -26,10 +25,13 @@ class Map:
 	def get_top_sprite_at(self, pos):
 		tile = self.get_bottom_sprite_at(pos)
 		sprites = tile.structures.sprites()
-		result = sprites.pop() if len(sprites) > 0 else tile 
+		result = sprites.pop() if len(sprites) > 0 else tile
 		return result
 
 	def get_bottom_sprite_at(self, pos):
+		tiles = self.tiles.get_sprites_at(pos)
+		if len(tiles) == 0:
+			return None
 		return self.tiles.get_sprites_at(pos)[0]
 
 	def draw(self, surf):

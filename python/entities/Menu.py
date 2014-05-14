@@ -161,9 +161,11 @@ class Ring(EventedSurface):
 			self.center = (self.left + (targetCenter[0]),  self.top + (targetCenter[1]))
 			self.radius = self.rect.width / 2
 			tile = self.world.map.get_bottom_sprite_at(self.rect.center)
-			tile.make_dirty()
-			for t in tile.get_surrounding():
-				t.make_dirty()
+			if tile != None:
+				tile.make_dirty()
+				for t in tile.get_surrounding():
+					if t != None:
+						t.make_dirty()
 
 
 
@@ -187,7 +189,7 @@ class MenuRing(Ring):
 	def __init__(self, target = None):
 		Ring.__init__(self, target)
 		self.buttons = []
-	
+
 	def is_active(self):
 		return self.target != None
 
@@ -423,7 +425,7 @@ class Label(pygame.sprite.Sprite):
 		self.rect = pygame.Rect(position + size)
 		self.attr = targetAttr
 		self.rect.topleft = position
-	
+
 	def update(self, events):
 		self.text = str(getattr(self.pane.target, self.attr))
 		text = self.font.render(self.text, True, self.color)
@@ -532,7 +534,7 @@ class CharacterScreen(pygame.sprite.Sprite):
 		for ability in world.abilities:
 			world.abilities[ability].rect.topleft = (x, 0)
 			abilities.addControl(world.abilities[ability])
-			x += 60		
+			x += 60
 
 		aspects = Pane((500, 0),(900, 100))
 		aspects.color = GREEN
@@ -583,4 +585,3 @@ if __name__ == '__main__':
 	menuring.update()
 	menuring.add_button(test)
 	test.draw(pygame.Surface((90,90)))
-

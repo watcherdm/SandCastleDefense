@@ -38,7 +38,7 @@ def show_character_screen():
 	world = World(SCREENSIZE)
 	world.map.dirtyTiles()
 	if world.cs == None:
-		
+
 		surf = CharacterScreen(world)
 		surf.setup(world)
 		world.cs = surf
@@ -84,16 +84,16 @@ def show_splash_screen():
 					# do what the button says
 
 def init():
-	world = World(SCREENSIZE)	
+	world = World(SCREENSIZE)
 	world.wave = get_line(world.i, WAVEPRECISION)
 	world.wave_count = 0
 	world.structures = pygame.sprite.OrderedUpdates()
-
+	world.ocean = Ocean()
 	menuitems = {
-		"fire": FireTowerButton(), 
-		"ice": IceTowerButton(), 
-		"lit": LightningTowerButton(), 
-		"pit": PitButton(), 
+		"fire": FireTowerButton(),
+		"ice": IceTowerButton(),
+		"lit": LightningTowerButton(),
+		"pit": PitButton(),
 		"mound": MoundButton()
 	}
 
@@ -139,7 +139,7 @@ def init():
 			"lvl": {
 				0: "knight",
 				1200: "wizard",
-				4000: "pirate"			
+				4000: "pirate"
 			},
 			"obj": None
 		},
@@ -193,7 +193,7 @@ def pauseMusic():
 
 def stopMusic():
 	pygame.mixer.music.pause()
-	
+
 def loadPlayer(cls, pos):
 	world = World(SCREENSIZE)
 	character = cls()
@@ -235,7 +235,7 @@ def runLevel(currentLevel):
 		print "Level Completed, moving on"
 
 		# start a sound
-	
+
 	world.hl_block.update(events)
 
 	for name in world.levels:
@@ -252,11 +252,11 @@ def runLevel(currentLevel):
 	world.map.tiles.draw(world.sand)
 	world.hl_block.draw(world.sand)
 	# if WETSANDCOLOR.a > 0:
-	# 	WETSANDCOLOR.a = WETSANDCOLOR.a - 1
-	# 	oosurf = pygame.Surface((world.oldocean.right - world.oldocean.left, world.oldocean.bottom - world.oldocean.top))
-	# 	oosurf.set_alpha(WETSANDCOLOR.a)
-	# 	oosurf.fill(WETSANDCOLOR)
-	# 	world.sand.blit(oosurf, (world.oldocean.left, world.oldocean.top))
+		# WETSANDCOLOR.a = WETSANDCOLOR.a - 1
+		# oosurf = pygame.Surface((world.oldocean.right - world.oldocean.left, world.oldocean.bottom - world.oldocean.top))
+		# oosurf.set_alpha(WETSANDCOLOR.a)
+		# oosurf.fill(WETSANDCOLOR)
+		# world.sand.blit(oosurf, (world.oldocean.left, world.oldocean.top))
 	world.selectable.draw(world.sand)
 	world.critters.draw(world.sand)
 	world.update(events)
@@ -287,8 +287,6 @@ def main():
 	world.i = 1
 	world.clock = pygame.time.Clock()
 	initializeWorld()
-	# print len(images)
-	# print len(images[0])
 
 	while True:
 		if world.state == 0: #game start

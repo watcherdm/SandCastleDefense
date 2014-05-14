@@ -7,7 +7,7 @@ BLOCKSIZE = 50
 BEACHCOLOR = pygame.Color(255, 222, 73, 1)
 
 images = {
-    
+
 }
 
 class Tile(pygame.sprite.DirtySprite):
@@ -44,7 +44,7 @@ class Tile(pygame.sprite.DirtySprite):
 
 	def draw(self):
 		self.image.fill(BEACHCOLOR)
-		pygame.draw.rect(self.image, pygame.Color(0,0,0), self.image.get_rect(), 4)
+		pygame.draw.rect(self.image, pygame.Color(0,0,0), self.image.get_rect(), 1)
 
 	def addStructure(self, structure):
 		print 'structure added'
@@ -345,7 +345,7 @@ class Tower(Structure):
 		self.cannon.height = self.height
 		self.cannon.damage = self.damage
 		self.cannon.fireTrigger = self.rof
-		
+
 	def setCannonPosition(self):
 		center = self.rect.center
 		if self.offset['y']:
@@ -358,7 +358,7 @@ class Tower(Structure):
 		center = self.rect.center
 		if hasattr(self, "orig_rect"):
 			center = self.orig_rect.center
-		
+
 		self.setCannonPosition()
 		for event in events:
 			if event.type == pygame.KEYDOWN:
