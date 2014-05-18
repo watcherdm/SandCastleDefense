@@ -78,7 +78,7 @@ class EventedSprite(pygame.sprite.DirtySprite):
     if self.rect.collidepoint(pos):
       self.mouse['over'] = True
       self.on_mouseover()
-    
+
   def click(self, event):
     self.on_click(event)
 
@@ -197,7 +197,7 @@ class World(pygame.Surface, EventedSprite):
 
   def on_click(self, event):
     if self._supress:
-      return      
+      return
     if self._selected != None:
       self._selected.selected_update(event)
     self._selection_changed = False
@@ -395,10 +395,11 @@ class Ocean(pygame.sprite.Sprite):
       self.dirty_sand()
       self.i += 1
       return
-    # if new_y < self.y:
-    #   #self.ebb(new_y)
-    # elif new_y > self.y:
-    #   #self.flow(new_y)
+    if new_y < self.y:
+      self.ebb(new_y)
+
+    elif new_y > self.y:
+      self.flow(new_y)
 
     self.y = new_y
     self.rect.top = self.screen.get_size()[1] - self.y
