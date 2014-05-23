@@ -281,7 +281,7 @@ def smooth_line(l):
 
   x2 = np.interp(t2, t, x)
   y2 = np.interp(t2, t, y)
-  sigma = 1
+  sigma = 5
   x3 = gaussian_filter1d(x2, sigma)
   y3 = gaussian_filter1d(y2, sigma)
 
@@ -351,7 +351,7 @@ class Ocean(pygame.sprite.Sprite):
         for character in self.world.selectable.sprites():
           if character.rect.collidepoint(point[0], SCREENSIZE[1] - (point[1] + delta_y)):
             self.character_collision(point, character)
-
+            set_y = False
       if set_y:
         point[1] += delta_y
 

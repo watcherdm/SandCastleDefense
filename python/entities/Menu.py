@@ -161,7 +161,7 @@ class Ring(EventedSurface):
 			self.center = (self.left + (targetCenter[0]),  self.top + (targetCenter[1]))
 			self.radius = self.rect.width / 2
 			tile = self.world.map.get_bottom_sprite_at(self.rect.center)
-			if tile != None:
+			if tile != None and tile.__class__ == Tile:
 				tile.make_dirty()
 				for t in tile.get_surrounding():
 					if t != None:
