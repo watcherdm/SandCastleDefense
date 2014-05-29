@@ -365,7 +365,7 @@ class PauseButton(StructureButton):
 		StructureButton.__init__(self, '')
 
 	def on_click(self, event):
-		self.world.state = 3
+		self.world.mode(4)
 		return
 
 class CharacterDisk(EventedSurface):
@@ -448,7 +448,7 @@ class CloseButton(Control):
 		self.image = label
 
 	def on_click(self, event):
-		self.world.state = 2
+		self.world.mode(BUILD)
 
 class AddButton(Control):
 	width = 40

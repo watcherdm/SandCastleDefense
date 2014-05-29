@@ -24,7 +24,7 @@ critters = {
 def startGame():
 	world = World(SCREENSIZE)
 	world.debug = False
-	world.state = 1
+	world.mode(INIT)
 	world.currentLevel = 0
 
 def exit():
@@ -178,7 +178,7 @@ def init():
 	world.set_goal(goal)
 	goal.set_position(initialPosition)
 	goal.add_to_world()
-	world.state = 2
+	world.mode(BUILD)
 
 def loadMusic():
 	pygame.mixer.music.load('assets/sounds/music.wav')
