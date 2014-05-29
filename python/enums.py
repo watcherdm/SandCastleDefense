@@ -1,0 +1,7 @@
+SPLASH = 0
+INIT   = 1
+BUILD  = 2
+ATTACK = 3
+PAUSE  = 4
+WIN    = 5
+LOSE   = 6

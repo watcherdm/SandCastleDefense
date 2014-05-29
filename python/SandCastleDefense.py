@@ -10,6 +10,7 @@ from entities.Abilities import *
 from entities.map import *
 from pallette import *
 from dimensions import *
+from enums import *
 
 version = '0.0.4'
 
@@ -218,22 +219,27 @@ def runLevel(currentLevel):
 	points_per_wave = (level["tiles"] / level["waves"])
 	levels_in_play = (level["completed"] + 1)
 	wave_points = (points_per_wave * levels_in_play)
-	if len(world.structures.sprites()) >=  wave_points:
-		#send wave
-		points = wave_points + (len(world.map.tiles.get_sprites_from_layer(1)) / level["waves"])
-		if points > 0:
-			critterConstructor = critters[random.choice(level["critters"])]
-			critter = critterConstructor(world.map.getRandomTile())
-			world.critters.add(critter)
-			points-= critter.cost
-		for critter in world.critters:
-			critter.update(events)
-		level["completed"] += 1
-	if level["completed"] > level["waves"] + 1:
-		#level completed
-		world.currentLevel += 1
-		print "Level Completed, moving on"
-
+	# Need to check if the characters are out of energy
+	# if so go to attack phase
+	# world.mode(ATTACK)
+	# otherwise keep going
+	# world.mode(1)
+	# if len(world.structures.sprites()) >=  wave_points:
+	# 	#send wave
+	# 	points = wave_points + (len(world.map.tiles.get_sprites_from_layer(1)) / level["waves"])
+	# 	if points > 0:
+	# 		critterConstructor = critters[random.choice(level["critters"])]
+	# 		critter = critterConstructor(world.map.getRandomTile())
+	# 		world.critters.add(critter)
+	# 		points-= critter.cost
+	# 	for critter in world.critters:
+	# 		critter.update(events)
+	# 	level["completed"] += 1
+	# if level["completed"] > level["waves"] + 1:
+	# 	#level completed
+	# 	world.currentLevel += 1
+	# 	print "Level Completed, moving on"
+	#
 		# start a sound
 
 	world.hl_block.update(events)
@@ -289,18 +295,20 @@ def main():
 	initializeWorld()
 
 	while True:
-		if world.state == 0: #game start
+		if world.mode() == SPLASH: #game start
 			show_splash_screen()
-		if world.state == 1: #initialize game
+		if world.mode() == INIT: #initialize game
 			init()
-		if world.state == 2: #play level
+		if world.mode() == BUILD: #play level
 			runLevel(world.currentLevel)
-		if world.state == 3: #pause level
+		if world.mode() == ATTACK:
+			runWave(world.currentLevel)
+		if world.mode() == PAUSE: #pause level
 			stopMusic()
 			show_character_screen()
-		if world.state == 99:
+		if world.mode() == WIN:
 			stopMusic()
-			world = initializeWorld()
+			world.mode(SPLASH)
 			show_splash_screen()
 
 		pygame.display.flip()

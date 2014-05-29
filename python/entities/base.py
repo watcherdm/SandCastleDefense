@@ -1,5 +1,6 @@
 import pygame, os, sys
 import random
+from enums import *
 from engines.wave import *
 from dimensions import *
 from scipy.ndimage import gaussian_filter1d
@@ -131,12 +132,14 @@ class World(pygame.Surface, EventedSprite):
   _instance = None
   _selection_changed = False
   _goal = None
+  _mode = SPLASH
   i = 0
   structures = None
   state = 0
   initialized = False
   debug = False
   cs = None
+
   def __new__(cls, *args, **kwargs):
     if not cls._instance:
       print "creating new world"
@@ -157,6 +160,12 @@ class World(pygame.Surface, EventedSprite):
     self._supress = False
     self.rect = self.get_rect()
     self.initialized = True
+
+  def mode(self, mode = None):
+    if mode != None:
+      self._mode = mode
+    return self._mode
+
   def set_goal(self, goal):
     self._goal = goal
 
@@ -281,7 +290,7 @@ def smooth_line(l):
 
   x2 = np.interp(t2, t, x)
   y2 = np.interp(t2, t, y)
-  sigma = 5
+  sigma = 2
   x3 = gaussian_filter1d(x2, sigma)
   y3 = gaussian_filter1d(y2, sigma)
 
@@ -300,6 +309,7 @@ class Ocean(pygame.sprite.Sprite):
   y = 0
   ne = False
   dmg = 0.2
+
   def __init__(self):
     pygame.sprite.Sprite.__init__(self)
     self.screen = pygame.display.get_surface()

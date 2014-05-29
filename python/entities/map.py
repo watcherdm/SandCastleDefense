@@ -24,9 +24,10 @@ class Map:
 
 	def get_top_sprite_at(self, pos):
 		tile = self.get_bottom_sprite_at(pos)
-		sprites = tile.structures.sprites()
-		result = sprites.pop() if len(sprites) > 0 else tile
-		return result
+		if tile != None:
+			sprites = tile.structures.sprites()
+			result = sprites.pop() if len(sprites) > 0 else tile
+			return result
 
 	def get_bottom_sprite_at(self, pos):
 		tiles = self.tiles.get_sprites_at(pos)
