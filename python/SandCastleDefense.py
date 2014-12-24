@@ -12,311 +12,314 @@ from pallette import *
 from dimensions import *
 from enums import *
 
-version = '0.0.4'
+class SandCastleDefense():
 
-critters = {
-	"Crab": Crab,
-	"Turtle": Turtle,
-	"Snake": Snake,
-	"Seagull": Seagull
-}
+	version = '0.0.4'
 
-def startGame():
-	world = World(SCREENSIZE)
-	world.debug = False
-	world.mode(INIT)
-	world.currentLevel = 0
+	critters = {
+		"Crab": Crab,
+		"Turtle": Turtle,
+		"Snake": Snake,
+		"Seagull": Seagull
+	}
 
-def exit():
-	sys.exit()
+	def startGame():
+		world = World(SCREENSIZE)
+		world.debug = False
+		world.mode(INIT)
+		world.currentLevel = 0
 
-callbacks = {
-	"Start Game": startGame,
-	"Exit": exit
-}
+	def exit():
+		sys.exit()
 
-def show_character_screen():
-	world = World(SCREENSIZE)
-	world.map.dirtyTiles()
-	if world.cs == None:
+	callbacks = {
+		"Start Game": startGame,
+		"Exit": exit
+	}
 
-		surf = CharacterScreen(world)
-		surf.setup(world)
-		world.cs = surf
-	world.cs.active = True
-	world.cs.setTarget(world.get_selected())
-	events = pygame.event.get()
-	world.cs.update(events)
-	world.cs.draw(world.sand)
+	def show_character_screen():
+		world = World(SCREENSIZE)
+		world.map.dirtyTiles()
+		if world.cs == None:
 
-def show_splash_screen():
-	world = World(SCREENSIZE)
-	world.sand.fill(BEACHCOLOR)
-	if world.cs != None:
-		world.cs.active = False
-	titlefont = pygame.font.SysFont('arial', 72)
-	menufont = pygame.font.SysFont('arial', 24)
-	title = titlefont.render("Sand Castle Defense", True, OCEANCOLOR)
-	titleposition = (world.sand.get_width() / 2 - title.get_width() / 2, 100)
-	world.sand.blit(title, titleposition)
-	hitrects = []
-	itemtop = 300
-	for item in ['Start Game', 'Exit']:
-		surf = menufont.render(item, True, OCEANCOLOR)
-		itemleft = world.sand.get_width() / 2 - surf.get_width() / 2
-		world.sand.blit(surf, (itemleft, itemtop))
-		button = {
-			"rect": pygame.Rect(itemleft, itemtop, surf.get_width(), surf.get_height()),
-			"name": item
+			surf = CharacterScreen(world)
+			surf.setup(world)
+			world.cs = surf
+		world.cs.active = True
+		world.cs.setTarget(world.get_selected())
+		events = pygame.event.get()
+		world.cs.update(events)
+		world.cs.draw(world.sand)
+
+	def show_splash_screen(self):
+		world = World(SCREENSIZE)
+		world.sand.fill(BEACHCOLOR)
+		if world.cs != None:
+			world.cs.active = False
+		titlefont = pygame.font.SysFont('arial', 72)
+		menufont = pygame.font.SysFont('arial', 24)
+		title = titlefont.render("Sand Castle Defense", True, OCEANCOLOR)
+		titleposition = (world.sand.get_width() / 2 - title.get_width() / 2, 100)
+		world.sand.blit(title, titleposition)
+		hitrects = []
+		itemtop = 300
+		for item in ['Start Game', 'Exit']:
+			surf = menufont.render(item, True, OCEANCOLOR)
+			itemleft = world.sand.get_width() / 2 - surf.get_width() / 2
+			world.sand.blit(surf, (itemleft, itemtop))
+			button = {
+				"rect": pygame.Rect(itemleft, itemtop, surf.get_width(), surf.get_height()),
+				"name": item
+			}
+			hitrects.append(button)
+			itemtop += surf.get_height() * 2
+
+		events = pygame.event.get()
+		for event in events:
+			if event.type == pygame.QUIT:
+				exit()
+			if event.type == pygame.MOUSEBUTTONDOWN:
+				pos = pygame.mouse.get_pos()
+				# see if they hit a box
+				for button in hitrects:
+					if button["rect"].collidepoint(pos):
+						self.callbacks[button["name"]]()
+						# do what the button says
+
+	def init(self):
+		world = World(SCREENSIZE)
+		world.wave = get_line(world.i, WAVEPRECISION)
+		world.wave_count = 0
+		world.structures = pygame.sprite.OrderedUpdates()
+		world.ocean = Ocean()
+		menuitems = {
+			"fire": FireTowerButton(),
+			"ice": IceTowerButton(),
+			"lit": LightningTowerButton(),
+			"pit": PitButton(),
+			"mound": MoundButton()
 		}
-		hitrects.append(button)
-		itemtop += surf.get_height() * 2
 
-	events = pygame.event.get()
-	for event in events:
-		if event.type == pygame.QUIT:
-			exit()
-		if event.type == pygame.MOUSEBUTTONDOWN:
-			pos = pygame.mouse.get_pos()
-			# see if they hit a box
-			for button in hitrects:
-				if button["rect"].collidepoint(pos):
-					callbacks[button["name"]]()
-					# do what the button says
-
-def init():
-	world = World(SCREENSIZE)
-	world.wave = get_line(world.i, WAVEPRECISION)
-	world.wave_count = 0
-	world.structures = pygame.sprite.OrderedUpdates()
-	world.ocean = Ocean()
-	menuitems = {
-		"fire": FireTowerButton(),
-		"ice": IceTowerButton(),
-		"lit": LightningTowerButton(),
-		"pit": PitButton(),
-		"mound": MoundButton()
-	}
-
-	world.aspects = {
-		"wizard": Aspect("wizard", menuitems['ice']),
-		"knight": Aspect("knight", menuitems['fire']),
-		"pirate": Aspect("pirate", menuitems['lit'])
-	}
-
-	world.abilities = {
-		"blizzard": BlizzardButton(),
-		"cannonade": CannonadeButton(),
-		"cleave": CleaveButton(),
-		"confuse": ConfuseButton(),
-		"poison": PoisonButton(),
-		"root": RootButton(),
-		"shout": ShoutButton(),
-		"taunt": TauntButton()
-	}
-	world.gameLevels = [
-		{
-			"tiles": 20,
-			"waves": 4,
-			"critters": ["Crab","Turtle"],
-			"completed": 0
-		},
-		{
-			"tiles": 40,
-			"waves": 5,
-			"critters": ["Crab", "Turtle", "Snake"],
-			"completed": 0
-		},
-		{
-			"tiles": 72,
-			"waves": 6,
-			"critters": ["Crab", "Turtle", "Snake", "Seagull"],
-			"completed": 0
+		world.aspects = {
+			"wizard": Aspect("wizard", menuitems['ice']),
+			"knight": Aspect("knight", menuitems['fire']),
+			"pirate": Aspect("pirate", menuitems['lit'])
 		}
-	]
 
-	world.levels = {
-		"steve": {
-			"lvl": {
-				0: "knight",
-				1200: "wizard",
-				4000: "pirate"
+		world.abilities = {
+			"blizzard": BlizzardButton(),
+			"cannonade": CannonadeButton(),
+			"cleave": CleaveButton(),
+			"confuse": ConfuseButton(),
+			"poison": PoisonButton(),
+			"root": RootButton(),
+			"shout": ShoutButton(),
+			"taunt": TauntButton()
+		}
+		world.gameLevels = [
+			{
+				"tiles": 20,
+				"waves": 4,
+				"critters": ["Crab","Turtle"],
+				"completed": 0
 			},
-			"obj": None
-		},
-		"jenai": {
-			"lvl": {
-				0: "wizard",
-				1200: "pirate",
-				4000: "knight"
+			{
+				"tiles": 40,
+				"waves": 5,
+				"critters": ["Crab", "Turtle", "Snake"],
+				"completed": 0
 			},
-			"obj": None
+			{
+				"tiles": 72,
+				"waves": 6,
+				"critters": ["Crab", "Turtle", "Snake", "Seagull"],
+				"completed": 0
+			}
+		]
+
+		world.levels = {
+			"steve": {
+				"lvl": {
+					0: "knight",
+					1200: "wizard",
+					4000: "pirate"
+				},
+				"obj": None
+			},
+			"jenai": {
+				"lvl": {
+					0: "wizard",
+					1200: "pirate",
+					4000: "knight"
+				},
+				"obj": None
+			}
 		}
-	}
 
-	world.selectable = pygame.sprite.OrderedUpdates()
-	world.hl_block = HighlightBlock()
-	initCritters()
-	loadPlayer(Jenai, (100, 100))
-	loadPlayer(Steve, (100, 300))
-	loadMusic()
-	sandmap = Map(world, 'assets/maps/allsand.map')
+		world.selectable = pygame.sprite.OrderedUpdates()
+		world.hl_block = HighlightBlock()
+		self.initCritters()
+		self.loadPlayer(Jenai, (100, 100))
+		self.loadPlayer(Steve, (100, 300))
+		self.loadMusic()
+		sandmap = Map(world, 'assets/maps/allsand.map')
 
-	world.menuring = MenuRing()
-	fast = 9
-	med = 6
-	slow = 3
-	initialPosition = (400, 200)
-	world.critter_level = 5
-	pygame.FASTFIRE = 25
-	pygame.MEDFIRE = 26
-	pygame.SLOWFIRE = 27
-	pygame.time.set_timer(pygame.FASTFIRE, 1000 / fast)
-	pygame.time.set_timer(pygame.MEDFIRE, 1000 / med)
-	pygame.time.set_timer(pygame.SLOWFIRE, 1000 / slow)
-	goal = Goal()
-	world.set_goal(goal)
-	goal.set_position(initialPosition)
-	goal.add_to_world()
-	world.mode(BUILD)
+		world.menuring = MenuRing()
+		fast = 9
+		med = 6
+		slow = 3
+		initialPosition = (400, 200)
+		world.critter_level = 5
+		pygame.FASTFIRE = 25
+		pygame.MEDFIRE = 26
+		pygame.SLOWFIRE = 27
+		pygame.time.set_timer(pygame.FASTFIRE, 1000 / fast)
+		pygame.time.set_timer(pygame.MEDFIRE, 1000 / med)
+		pygame.time.set_timer(pygame.SLOWFIRE, 1000 / slow)
+		goal = Goal()
+		world.set_goal(goal)
+		goal.set_position(initialPosition)
+		goal.add_to_world()
+		world.mode(BUILD)
 
-def loadMusic():
-	pygame.mixer.music.load('assets/sounds/music.wav')
+	def loadMusic(self):
+		pygame.mixer.music.load('assets/sounds/music.wav')
 
-def startMusic():
-	if pygame.mixer.music.get_pos() > 0:
-		pygame.mixer.music.unpause()
-	else:
-		pygame.mixer.music.play(100)
+	def startMusic(self):
+		if pygame.mixer.music.get_pos() > 0:
+			pygame.mixer.music.unpause()
+		else:
+			pygame.mixer.music.play(100)
 
-def pauseMusic():
-	pygame.mixer.music.pause()
+	def pauseMusic():
+		pygame.mixer.music.pause()
 
-def stopMusic():
-	pygame.mixer.music.pause()
+	def stopMusic():
+		pygame.mixer.music.pause()
 
-def loadPlayer(cls, pos):
-	world = World(SCREENSIZE)
-	character = cls()
-	character.rect.topleft = pos
-	world.selectable.add(character)
-	world.levels[character.name]["obj"] = character
+	def loadPlayer(self, cls, pos):
+		world = World(SCREENSIZE)
+		character = cls()
+		character.rect.topleft = pos
+		world.selectable.add(character)
+		world.levels[character.name]["obj"] = character
 
-def initCritters():
-	world = World(SCREENSIZE)
-	critters = pygame.sprite.OrderedUpdates()
-	world.critters = critters
+	def initCritters(self):
+		world = World(SCREENSIZE)
+		critters = pygame.sprite.OrderedUpdates()
+		world.critters = critters
 
 
-def runLevel(currentLevel):
-	startMusic()
-	world = World(SCREENSIZE)
-	if world.cs != None:
-		world.cs.active = False
-	level = world.gameLevels[currentLevel]
-	events = pygame.event.get()
-	world.ocean.update(events)
-	points_per_wave = (level["tiles"] / level["waves"])
-	levels_in_play = (level["completed"] + 1)
-	wave_points = (points_per_wave * levels_in_play)
-	# Need to check if the characters are out of energy
-	# if so go to attack phase
-	# world.mode(ATTACK)
-	# otherwise keep going
-	# world.mode(1)
-	# if len(world.structures.sprites()) >=  wave_points:
-	# 	#send wave
-	# 	points = wave_points + (len(world.map.tiles.get_sprites_from_layer(1)) / level["waves"])
-	# 	if points > 0:
-	# 		critterConstructor = critters[random.choice(level["critters"])]
-	# 		critter = critterConstructor(world.map.getRandomTile())
-	# 		world.critters.add(critter)
-	# 		points-= critter.cost
-	# 	for critter in world.critters:
-	# 		critter.update(events)
-	# 	level["completed"] += 1
-	# if level["completed"] > level["waves"] + 1:
-	# 	#level completed
-	# 	world.currentLevel += 1
-	# 	print "Level Completed, moving on"
-	#
-		# start a sound
+	def runLevel(self, currentLevel):
+		self.startMusic()
+		world = World(SCREENSIZE)
+		if world.cs != None:
+			world.cs.active = False
+		level = world.gameLevels[currentLevel]
+		events = pygame.event.get()
+		world.ocean.update(events)
+		points_per_wave = (level["tiles"] / level["waves"])
+		levels_in_play = (level["completed"] + 1)
+		wave_points = (points_per_wave * levels_in_play)
+		# Need to check if the characters are out of energy
+		# if so go to attack phase
+		# world.mode(ATTACK)
+		# otherwise keep going
+		# world.mode(1)
+		# if len(world.structures.sprites()) >=  wave_points:
+		# 	#send wave
+		# 	points = wave_points + (len(world.map.tiles.get_sprites_from_layer(1)) / level["waves"])
+		# 	if points > 0:
+		# 		critterConstructor = critters[random.choice(level["critters"])]
+		# 		critter = critterConstructor(world.map.getRandomTile())
+		# 		world.critters.add(critter)
+		# 		points-= critter.cost
+		# 	for critter in world.critters:
+		# 		critter.update(events)
+		# 	level["completed"] += 1
+		# if level["completed"] > level["waves"] + 1:
+		# 	#level completed
+		# 	world.currentLevel += 1
+		# 	print "Level Completed, moving on"
+		#
+			# start a sound
 
-	world.hl_block.update(events)
+		world.hl_block.update(events)
 
-	for name in world.levels:
-		for level in world.levels[name]["lvl"]:
-	 		if world.levels[name]["obj"].xp >= level and not world.levels[name]["lvl"][level] in world.levels[name]["obj"].available_aspects:
-	 			world.levels[name]["obj"].available_aspects.append(world.levels[name]["lvl"][level])
+		for name in world.levels:
+			for level in world.levels[name]["lvl"]:
+		 		if world.levels[name]["obj"].xp >= level and not world.levels[name]["lvl"][level] in world.levels[name]["obj"].available_aspects:
+		 			world.levels[name]["obj"].available_aspects.append(world.levels[name]["lvl"][level])
 
-	world.menuring.update(events)
-	for m in world.menuring.get_buttons():
-		m.update(events)
-	world.selectable.update(events)
-	world.critters.update(events)
-	world.map.tiles.update(events)
-	world.map.tiles.draw(world.sand)
-	world.hl_block.draw(world.sand)
-	# if WETSANDCOLOR.a > 0:
-		# WETSANDCOLOR.a = WETSANDCOLOR.a - 1
-		# oosurf = pygame.Surface((world.oldocean.right - world.oldocean.left, world.oldocean.bottom - world.oldocean.top))
-		# oosurf.set_alpha(WETSANDCOLOR.a)
-		# oosurf.fill(WETSANDCOLOR)
-		# world.sand.blit(oosurf, (world.oldocean.left, world.oldocean.top))
-	world.selectable.draw(world.sand)
-	world.critters.draw(world.sand)
-	world.update(events)
-	world.sand.blit(world.ocean.image, world.ocean.rect)
-	for sprite in world.map.tiles.sprites():
-		if hasattr(sprite, 'cannon'):
-			sprite.cannon.draw(world.sand)
-	world.menuring.draw(world.sand)
+		world.menuring.update(events)
+		for m in world.menuring.get_buttons():
+			m.update(events)
+		world.selectable.update(events)
+		world.critters.update(events)
+		world.map.tiles.update(events)
+		world.map.tiles.draw(world.sand)
+		world.hl_block.draw(world.sand)
+		# if WETSANDCOLOR.a > 0:
+			# WETSANDCOLOR.a = WETSANDCOLOR.a - 1
+			# oosurf = pygame.Surface((world.oldocean.right - world.oldocean.left, world.oldocean.bottom - world.oldocean.top))
+			# oosurf.set_alpha(WETSANDCOLOR.a)
+			# oosurf.fill(WETSANDCOLOR)
+			# world.sand.blit(oosurf, (world.oldocean.left, world.oldocean.top))
+		world.selectable.draw(world.sand)
+		world.critters.draw(world.sand)
+		world.update(events)
+		world.sand.blit(world.ocean.image, world.ocean.rect)
+		for sprite in world.map.tiles.sprites():
+			if hasattr(sprite, 'cannon'):
+				sprite.cannon.draw(world.sand)
+		world.menuring.draw(world.sand)
 
-def initializeWorld():
-	sand = pygame.display.set_mode(SCREENSIZE)
-	world = World(SCREENSIZE)
-	world.sand = sand
-	world.i = 1
-	images = load_sliced_sprites(100, 100, 'wavetip.png')
-	wavetip = pygame.sprite.Sprite()
-	wavetip.ani = images
-	world.wavetip = wavetip
-	world.ocean = Ocean()
-	return world
+	def initializeWorld(self):
+		sand = pygame.display.set_mode(SCREENSIZE)
+		world = World(SCREENSIZE)
+		world.sand = sand
+		world.i = 1
+		images = load_sliced_sprites(100, 100, 'wavetip.png')
+		wavetip = pygame.sprite.Sprite()
+		wavetip.ani = images
+		world.wavetip = wavetip
+		world.ocean = Ocean()
+		return world
 
-def main():
-	pygame.init()
-	pygame.display.set_caption('Sand Castle Defense ' + version)
-	sand = pygame.display.set_mode(SCREENSIZE)
-	world = World(SCREENSIZE)
-	world.sand = sand
-	world.i = 1
-	world.clock = pygame.time.Clock()
-	initializeWorld()
+	def main(self):
+		pygame.init()
+		pygame.display.set_caption('Sand Castle Defense ' + self.version)
+		sand = pygame.display.set_mode(SCREENSIZE)
+		world = World(SCREENSIZE)
+		world.sand = sand
+		world.i = 1
+		world.clock = pygame.time.Clock()
+		self.initializeWorld()
 
-	while True:
-		if world.mode() == SPLASH: #game start
-			show_splash_screen()
-		if world.mode() == INIT: #initialize game
-			init()
-		if world.mode() == BUILD: #play level
-			runLevel(world.currentLevel)
-		if world.mode() == ATTACK:
-			runWave(world.currentLevel)
-		if world.mode() == PAUSE: #pause level
-			stopMusic()
-			show_character_screen()
-		if world.mode() == WIN:
-			stopMusic()
-			world.mode(SPLASH)
-			show_splash_screen()
+		while True:
+			if world.mode() == SPLASH: #game start
+				self.show_splash_screen()
+			if world.mode() == INIT: #initialize game
+				self.init()
+			if world.mode() == BUILD: #play level
+				self.runLevel(world.currentLevel)
+			if world.mode() == ATTACK:
+				runWave(world.currentLevel)
+			if world.mode() == PAUSE: #pause level
+				stopMusic()
+				show_character_screen()
+			if world.mode() == WIN:
+				stopMusic()
+				world.mode(SPLASH)
+				self.show_splash_screen()
 
-		pygame.display.flip()
-		world.clock.tick(24)
-		world.i+= 1
+			pygame.display.flip()
+			world.clock.tick(24)
+			world.i+= 1
 
-def build_wet_sand():
-	return False
+	def build_wet_sand():
+		return False
 
 if __name__ == '__main__':
-	main()
+	scd = SandCastleDefense()
+	scd.main()
